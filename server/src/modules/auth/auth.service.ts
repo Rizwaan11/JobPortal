@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import { hashPassword, verifyPassword } from '../../shared/password.js';
 import { ConflictError, UnauthorizedError } from '../../shared/errors.js';
 import { config } from '../../shared/config.js';
+import { generateOtp, hashOtp } from '../../shared/otp.js';
+import { sendVerificationEmail } from '../../shared/mailer.js';
 import {
   findUserByEmail,
   createUser,
@@ -9,6 +11,10 @@ import {
   createRefreshToken,
   findRefreshTokenByHash,
   deleteRefreshTokenByHash,
+  createEmailVerification,
+  findEmailVerification,
+  deleteEmailVerificationsForUser,
+  activateUser,
 } from './auth.repo.js';
 import type { RegisterInput, LoginInput } from './auth.schema.js';
 import { signAccessToken } from '../../shared/token.js';
@@ -29,7 +35,16 @@ export async function register( input: RegisterInput):
   }
 
   const passwordHash = await hashPassword(input.password);
-  return createUser(input.email, passwordHash, input.role);
+  const user = await createUser(input.email, passwordHash, input.role);
+
+  const otp = generateOtp();
+  const otpHash = hashOtp(otp);
+  const expiresAt = new Date(Date.now() + config.OTP_EXPIRES_IN_MINUTES * 60 * 1000);
+
+  await createEmailVerification(user.id, otpHash, expiresAt);
+  await sendVerificationEmail(input.email, otp);
+
+  return user;
 }
 
 async function issueTokenPair(userId: string, role: 'admin' | 'recruiter' | 'applicant'): Promise<{ accessToken: string; refreshToken: string }> {
@@ -94,4 +109,51 @@ export async function refresh(rawToken: string): Promise<{ accessToken: string; 
 export async function logout(rawToken: string): Promise<void> {
   const hash = crypto.createHash('sha256').update(rawToken).digest('hex');
   await deleteRefreshTokenByHash(hash);
+}
+
+export async function verifyEmail(email: string, otp: string): Promise<void> {
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new UnauthorizedError('Invalid verification code');
+  }
+
+  if (user.status === 'active') {
+    return;
+  }
+
+  const verification = await findEmailVerification(user._id.toString());
+  if (!verification) {
+    throw new UnauthorizedError('Invalid verification code');
+  }
+
+  const submittedHash = hashOtp(otp);
+  if (submittedHash !== verification.otpHash) {
+    throw new UnauthorizedError('Invalid verification code');
+  }
+
+  await activateUser(user._id.toString());
+  await deleteEmailVerificationsForUser(user._id.toString());
+}
+
+export async function resendVerification(email: string): Promise<void> {
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    return;
+  }
+
+  if (user.status === 'active') {
+    return;
+  }
+
+  if (user.status !== 'unverified') {
+    return;
+  }
+
+  const otp = generateOtp();
+  const otpHash = hashOtp(otp);
+  const expiresAt = new Date(Date.now() + config.OTP_EXPIRES_IN_MINUTES * 60 * 1000);
+
+  await createEmailVerification(user._id.toString(), otpHash, expiresAt);
+  await sendVerificationEmail(email, otp);
 }

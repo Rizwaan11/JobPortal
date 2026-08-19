@@ -19,7 +19,18 @@ export const logoutSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
 
-export type RegisterInput = z.infer<typeof registerSchema>;
-export type LoginInput    = z.infer<typeof loginSchema>;
-export type RefreshInput  = z.infer<typeof refreshSchema>;
-export type LogoutInput   = z.infer<typeof logoutSchema>;
+export const verifyEmailSchema = z.object({
+  email: z.string().email('Must be a valid email address').transform(v => v.toLowerCase()),
+  otp:   z.string().length(6, 'Verification code must be 6 digits').regex(/^\d{6}$/, 'Verification code must be numeric'),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email('Must be a valid email address').transform(v => v.toLowerCase()),
+});
+
+export type RegisterInput          = z.infer<typeof registerSchema>;
+export type LoginInput             = z.infer<typeof loginSchema>;
+export type RefreshInput           = z.infer<typeof refreshSchema>;
+export type LogoutInput            = z.infer<typeof logoutSchema>;
+export type VerifyEmailInput       = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;

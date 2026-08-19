@@ -14,6 +14,13 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('15m'),
   REFRESH_TOKEN_EXPIRES_IN_DAYS: z.coerce.number().int().positive().default(7),
+
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASS: z.string().default(''),
+  SMTP_FROM: z.string().default('noreply@jobportal.local'),
+  OTP_EXPIRES_IN_MINUTES: z.coerce.number().int().positive().default(15),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
