@@ -1,3 +1,8 @@
+// ISOLATION RULE: Every company-scoped query must include companyId from
+// the authenticated recruiter row (resolved via getRecruiterCompany), never
+// from a URL parameter or request body. The recruiter cannot control which
+// companyId is used to scope their queries.
+
 import { Recruiter } from "./recruiter.model.js";
 import { Company } from "./company.model.js";
 
