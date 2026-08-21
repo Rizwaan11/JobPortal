@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { hashPassword, verifyPassword } from '../../shared/password.js';
-import { ConflictError, UnauthorizedError } from '../../shared/errors.js';
+import { ConflictError, UnauthorizedError, BadRequestError, ForbiddenError } from '../../shared/errors.js';
 import { config } from '../../shared/config.js';
 import { generateOtp, hashOtp } from '../../shared/otp.js';
 import { sendVerificationEmail } from '../../shared/mailer.js';
@@ -15,8 +15,11 @@ import {
   findEmailVerification,
   deleteEmailVerificationsForUser,
   activateUser,
+  findInvitationByToken,
+  deleteInvitation,
 } from './auth.repo.js';
-import type { RegisterInput, LoginInput } from './auth.schema.js';
+import { createRecruiter } from '../companies/companies.repo.js';
+import type { RegisterInput, LoginInput, AcceptInvitationInput } from './auth.schema.js';
 import { signAccessToken } from '../../shared/token.js';
 
 // Used in the login path when no user is found, so the timing cost of
@@ -156,4 +159,29 @@ export async function resendVerification(email: string): Promise<void> {
 
   await createEmailVerification(user._id.toString(), otpHash, expiresAt);
   await sendVerificationEmail(email, otp);
+}
+
+export async function acceptInvitation(input: AcceptInvitationInput): Promise<{ accessToken: string; refreshToken: string }> {
+  const invitation = await findInvitationByToken(input.token);
+  if (!invitation) {
+    throw new BadRequestError('Invalid or expired invitation token.');
+  }
+
+  if (invitation.email.toLowerCase() !== input.email.toLowerCase()) {
+    throw new BadRequestError('Invalid or expired invitation token.');
+  }
+
+  const user = await findUserByEmail(input.email);
+  if (!user) {
+    throw new BadRequestError('No account found for this email. Please register first.');
+  }
+
+  if (user.status !== 'active') {
+    throw new ForbiddenError('Your account is not active.');
+  }
+
+  await createRecruiter(user._id.toString(), invitation.companyId.toString(), invitation.role);
+  await deleteInvitation(invitation._id.toString());
+
+  return issueTokenPair(user._id.toString(), user.role);
 }

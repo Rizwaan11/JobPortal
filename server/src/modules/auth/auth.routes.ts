@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validateBody } from '../../shared/validate.js';
-import { registerSchema, loginSchema, refreshSchema, logoutSchema, verifyEmailSchema, resendVerificationSchema } from './auth.schema.js';
-import { register, login, refresh, logout, verifyEmail, resendVerification } from './auth.service.js';
+import { registerSchema, loginSchema, refreshSchema, logoutSchema, verifyEmailSchema, resendVerificationSchema, acceptInvitationSchema } from './auth.schema.js';
+import { register, login, refresh, logout, verifyEmail, resendVerification, acceptInvitation } from './auth.service.js';
 
 export const authRouter = Router();
 
@@ -39,4 +39,10 @@ authRouter.post('/resend-verification', async (req, res) => {
   const body = validateBody(resendVerificationSchema, req.body);
   await resendVerification(body.email);
   res.status(200).json({ message: 'If that email is pending verification, a new code has been sent' });
+});
+
+authRouter.post('/accept-invitation', async (req, res) => {
+  const body = validateBody(acceptInvitationSchema, req.body);
+  const tokens = await acceptInvitation(body);
+  res.status(200).json(tokens);
 });

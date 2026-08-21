@@ -103,3 +103,11 @@ export const createInvitation = async (companyId: string, input: InviteMemberInp
 
     return rawToken;
 }
+
+export const createRecruiter = async (
+    userId: string,
+    companyId: string,
+    companyRole: 'owner' | 'hr_manager' | 'recruiter' | 'hiring_manager'
+) => {
+    await Recruiter.create({ userId, companyId, companyRole });
+}

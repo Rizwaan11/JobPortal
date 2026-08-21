@@ -1,6 +1,8 @@
+import crypto from "node:crypto";
 import { User } from "./user.model.js";
 import { RefreshToken } from "./refresh-token.model.js";
 import { EmailVerification } from "./email-verification.model.js";
+import { Invitation } from "../companies/invitation.model.js";
 
 export const findUserByEmail = async (email: string) => {
     const user = await User.findOne({ email: email }).select('+password');
@@ -54,4 +56,14 @@ export const deleteEmailVerificationsForUser = async (userId: string) => {
 
 export const activateUser = async (userId: string) => {
     await User.findByIdAndUpdate(userId, { status: 'active' });
+}
+
+export const findInvitationByToken = async (rawToken: string) => {
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const invitation = await Invitation.findOne({ tokenHash, expiresAt: { $gt: new Date() } });
+    return invitation;
+}
+
+export const deleteInvitation = async (invitationId: string) => {
+    await Invitation.findByIdAndDelete(invitationId);
 }
