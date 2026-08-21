@@ -22,6 +22,7 @@ export const RecruiterSchema = new mongoose.Schema<IRecruiter>({
        type:String,
        enum:['owner','hr_manager','recruiter','hiring_manager'],
        required:true,
+       default:'recruiter',
     }
 },{ timestamps: true}
 )

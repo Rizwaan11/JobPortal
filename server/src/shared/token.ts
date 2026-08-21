@@ -1,6 +1,8 @@
-import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { config } from './config.js';
 import { UnauthorizedError } from './errors.js';
+
+const { JsonWebTokenError, TokenExpiredError } = jwt;
 
 
 interface SignInput {

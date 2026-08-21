@@ -4,9 +4,10 @@ export type IJob = {
     companyId:mongoose.Types.ObjectId,
     title:string,
     description:string,
-    location?:string,
-    employmentType:'full_time'|'part_time'|'contract'|'internship',
-    status:'open'|'closed'
+    status:'draft'|'open'|'closed',
+    deadline?:Date,
+    attributes:Record<string, unknown>,
+    screeningQuestions:Record<string, unknown>[]
 }
 
 export const JobSchema = new mongoose.Schema<IJob>({
@@ -23,19 +24,22 @@ export const JobSchema = new mongoose.Schema<IJob>({
         type:String,
         required:true,
     },
-    location:{
-        type:String,
-    },
-    employmentType:{
-        type:String,
-        enum:['full_time','part_time','contract','internship'],
-        required:true,
-    },
     status:{
         type:String,
-        enum:['open','closed'],
-        default:'open'
-    }
+        enum:['draft','open','closed'],
+        default:'draft'
+    },
+    deadline:{
+        type:Date,
+    },
+    attributes:{
+        type:Schema.Types.Mixed,
+        default:{}
+    },
+    screeningQuestions:{
+        type:[Schema.Types.Mixed],
+        default:[]
+    } as any
 },{ timestamps: true}
 )
 

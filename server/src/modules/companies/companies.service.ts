@@ -1,5 +1,6 @@
-import { NotFoundError } from '../../shared/errors.js';
-import { getRecruiterCompany, getCompanyById } from './companies.repo.js';
+import { ConflictError, NotFoundError } from '../../shared/errors.js';
+import { getRecruiterCompany, getCompanyById, createCompany } from './companies.repo.js';
+import type { CompanyInput } from './companies.schema.js';
 
 export async function getMyCompany(userId: string) {
   const recruiter = await getRecruiterCompany(userId);
@@ -15,4 +16,14 @@ export async function getMyCompany(userId: string) {
   }
 
   return company;
+}
+
+export async function openWorkspace(userId: string, input: CompanyInput) {
+  const existing = await getRecruiterCompany(userId);
+
+  if (existing) {
+    throw new ConflictError('You already have a company workspace.');
+  }
+
+  return createCompany(input, userId);
 }
