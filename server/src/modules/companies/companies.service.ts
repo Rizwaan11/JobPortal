@@ -1,6 +1,15 @@
-import { ConflictError, NotFoundError } from '../../shared/errors.js';
-import { getRecruiterCompany, getCompanyById, createCompany } from './companies.repo.js';
-import type { CompanyInput } from './companies.schema.js';
+import { ConflictError, ForbiddenError, NotFoundError } from '../../shared/errors.js';
+import { config } from '../../shared/config.js';
+import { sendInvitationEmail } from '../../shared/mailer.js';
+import {
+  getRecruiterCompany,
+  getCompanyById,
+  createCompany,
+  findExistingMember,
+  findPendingInvitation,
+  createInvitation,
+} from './companies.repo.js';
+import type { CompanyInput, InviteMemberInput } from './companies.schema.js';
 
 export async function getMyCompany(userId: string) {
   const recruiter = await getRecruiterCompany(userId);
@@ -26,4 +35,37 @@ export async function openWorkspace(userId: string, input: CompanyInput) {
   }
 
   return createCompany(input, userId);
+}
+
+function assertCompanyRole(companyRole: string, allowed: string[]) {
+  if (!allowed.includes(companyRole)) {
+    throw new ForbiddenError('You do not have permission to perform this action.');
+  }
+}
+
+export async function inviteMember(userId: string, input: InviteMemberInput) {
+  const company = await getRecruiterCompany(userId);
+
+  if (!company) {
+    throw new ForbiddenError('No company workspace found.');
+  }
+
+  assertCompanyRole(company.companyRole, ['owner', 'hr_manager']);
+
+  const existing = await findExistingMember(company.companyId.toString(), input.email);
+
+  if (existing) {
+    throw new ConflictError('This person is already a member of your company.');
+  }
+
+  const pending = await findPendingInvitation(company.companyId.toString(), input.email);
+
+  if (pending) {
+    throw new ConflictError('A pending invitation for this email already exists.');
+  }
+
+  const rawToken = await createInvitation(company.companyId.toString(), input);
+  const link = `${config.APP_BASE_URL}/auth/accept-invitation?token=${rawToken}`;
+
+  await sendInvitationEmail(input.email, link);
 }

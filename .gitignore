@@ -8,6 +8,7 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
+
 # build
 dist/
 build/
@@ -33,6 +34,11 @@ yarn-error.log*
 
 # vercel
 .vercel/
+
+
+graphify-out/
+CLAUDE.md
+.claude
 
 # typescript
 *.tsbuildinfo

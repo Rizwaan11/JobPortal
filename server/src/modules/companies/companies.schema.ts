@@ -7,3 +7,10 @@ export const companySchema = z.object({
 
 
 export type CompanyInput = z.infer<typeof companySchema>;
+
+export const inviteMemberSchema = z.object({
+    email:z.string().email('Must be a valid email address'),
+    role:z.enum(['hr_manager','recruiter','hiring_manager']),
+})
+
+export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
