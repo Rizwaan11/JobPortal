@@ -14,3 +14,9 @@ export const inviteMemberSchema = z.object({
 })
 
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
+
+export const updateMemberSchema = z.object({
+    role:z.enum(['hr_manager','recruiter','hiring_manager']),
+})
+
+export type UpdateMemberInput = z.infer<typeof updateMemberSchema>;

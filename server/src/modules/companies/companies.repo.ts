@@ -9,7 +9,7 @@ import { Recruiter } from "./recruiter.model.js";
 import { Company } from "./company.model.js";
 import { Invitation } from "./invitation.model.js";
 import { config } from "../../shared/config.js";
-import type { CompanyInput, InviteMemberInput } from "./companies.schema.js";
+import type { CompanyInput, InviteMemberInput, UpdateMemberInput } from "./companies.schema.js";
 
 export const getRecruiterCompany = async (userId: string) => {
     const recruiter = await Recruiter.findOne({ userId });
@@ -110,4 +110,24 @@ export const createRecruiter = async (
     companyRole: 'owner' | 'hr_manager' | 'recruiter' | 'hiring_manager'
 ) => {
     await Recruiter.create({ userId, companyId, companyRole });
+}
+
+
+
+export const listCompanyMembers = async (companyId:string) =>{
+   const members = await Recruiter.find({companyId}).populate('userId','email').sort({createdAt:1});
+
+   return members;
+
+}
+export const getMemberById = async (companyId:string, recruiterId:string) =>{
+    const member = await Recruiter.findOne({_id:recruiterId, companyId});
+    return member;
+}
+export const updateMemberRole = async (companyId:string, recruiterId:string, newRole:UpdateMemberInput) =>{
+    const member = await Recruiter.findOneAndUpdate({_id:recruiterId, companyId}, {companyRole:newRole.role}, {new:true});
+
+}
+export const removeMember = async (companyId:string, recruiterId:string) =>{
+    const member = await Recruiter.findOneAndDelete({_id:recruiterId, companyId});
 }

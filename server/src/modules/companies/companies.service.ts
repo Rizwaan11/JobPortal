@@ -8,8 +8,12 @@ import {
   findExistingMember,
   findPendingInvitation,
   createInvitation,
+  updateMemberRole,
+  removeMember,
+  listCompanyMembers,
+  getMemberById,
 } from './companies.repo.js';
-import type { CompanyInput, InviteMemberInput } from './companies.schema.js';
+import type { CompanyInput, InviteMemberInput, UpdateMemberInput } from './companies.schema.js';
 
 export async function getMyCompany(userId: string) {
   const recruiter = await getRecruiterCompany(userId);
@@ -37,7 +41,7 @@ export async function openWorkspace(userId: string, input: CompanyInput) {
   return createCompany(input, userId);
 }
 
-function assertCompanyRole(companyRole: string, allowed: string[]) {
+export function assertCompanyRole(companyRole: string, allowed: string[]) {
   if (!allowed.includes(companyRole)) {
     throw new ForbiddenError('You do not have permission to perform this action.');
   }
@@ -68,4 +72,65 @@ export async function inviteMember(userId: string, input: InviteMemberInput) {
   const link = `${config.APP_BASE_URL}/auth/accept-invitation?token=${rawToken}`;
 
   await sendInvitationEmail(input.email, link);
+}
+
+
+export async function getMembers(userId:string){
+  const company = await getRecruiterCompany(userId);
+  if (!company) {
+    throw new ForbiddenError('No company workspace found.');
+  }
+
+  assertCompanyRole(company.companyRole, ['owner', 'hr_manager']);
+
+  const members = await listCompanyMembers(company.companyId.toString()); 
+
+  return members; 
+
+}
+
+
+export async function changeMemberRole(userId:string, recruiterId:string, newRole:UpdateMemberInput){
+  const company = await getRecruiterCompany(userId);
+  if (!company) {
+    throw new ForbiddenError('No company workspace found.');
+  }
+
+  assertCompanyRole(company.companyRole, ['owner']);
+
+  const member = await getMemberById(company.companyId.toString(), recruiterId);
+  if (!member) {
+    throw new NotFoundError('Member not found.');
+  }
+
+  if (member.userId.toString() === userId) {
+    throw new ForbiddenError('You cannot change your own role.');
+  }  
+  if (member.companyRole === 'owner') {
+    throw new ForbiddenError('The owner role cannot be changed via this endpoint.');
+  }
+
+  await updateMemberRole(company.companyId.toString(), recruiterId, newRole);
+}
+
+
+export async function deleteMember(userId:string, recruiterId:string){
+  const company = await getRecruiterCompany(userId);
+  if (!company) {
+    throw new ForbiddenError('No company workspace found.');
+  }
+
+  assertCompanyRole(company.companyRole, ['owner', 'hr_manager']);
+
+  const member = await getMemberById(company.companyId.toString(), recruiterId);
+  if (!member) {
+    throw new NotFoundError('Member not found.');
+  }
+
+
+  if (member.userId.toString() === userId) {
+    throw new ForbiddenError('You cannot remove yourself from the company.');
+  }
+  await removeMember(company.companyId.toString(), recruiterId);
+  
 }
