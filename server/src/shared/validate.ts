@@ -8,19 +8,19 @@ export class ValidationError extends Error {
   }
 }
 
-export function validateBody<T>(schema: ZodSchema<T>, data: unknown): T {
+export function validateBody<T extends ZodSchema>(schema: T, data: unknown): z.infer<T> {
   const result = schema.safeParse(data);
   if (!result.success) throw new ValidationError(result.error);
   return result.data;
 }
 
-export function validateQuery<T>(schema: ZodSchema<T>, data: unknown): T {
+export function validateQuery<T extends ZodSchema>(schema: T, data: unknown): z.infer<T> {
   const result = schema.safeParse(data);
   if (!result.success) throw new ValidationError(result.error);
   return result.data;
 }
 
-export function validateParam<T>(schema: ZodSchema<T>, data: unknown): T {
+export function validateParam<T extends ZodSchema>(schema: T, data: unknown): z.infer<T> {
   const result = schema.safeParse(data);
   if (!result.success) throw new ValidationError(result.error);
   return result.data;

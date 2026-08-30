@@ -6,7 +6,7 @@
 import { Job } from "./job.model.js";
 import { NotFoundError } from "../../shared/errors.js";
 
-import type { jobInput, UpdateJobInput } from "./job.schema.js";
+import type { jobInput, ListCompanyJobsInput, UpdateJobInput } from "./job.schema.js";
 
 
 export const assertJobOwnership = async (jobId: string, companyId: string) => {
@@ -14,6 +14,15 @@ export const assertJobOwnership = async (jobId: string, companyId: string) => {
     if (!job || job.companyId.toString() !== companyId) {
         throw new NotFoundError('Job not found');
     }
+}
+
+
+export const getJobById = async (jobId: string, companyId: string) => {
+    const job = await Job.findOne({ _id: jobId, companyId });
+    if (!job) {
+        throw new NotFoundError('Job not found');
+    }
+    return job;
 }
 
 
@@ -41,4 +50,56 @@ export async function setJobStatus(jobId:string, companyId:string, newStatus:'dr
 export async function updateJob(jobId: string, companyId: string, input: UpdateJobInput){
     await Job.updateOne({ _id: jobId, companyId }, input)
 
+}
+
+
+
+// Encode: created_at ISO string + '|' + id
+export function encodeCursor(createdAt: Date, id: string): string {
+    return Buffer.from(`${createdAt.toISOString()}|${id}`).toString('base64url');
+}
+
+// Decode: returns { createdAt: string, id: string } or null if invalid
+export function decodeCursor(cursor: string): { createdAt: string; id: string } | null {
+  try {
+    const raw = Buffer.from(cursor, 'base64url').toString('utf8');
+    const pipeIdx = raw.lastIndexOf('|');
+    if (pipeIdx === -1) return null;
+    return {
+      createdAt: raw.slice(0, pipeIdx),
+      id: raw.slice(pipeIdx + 1),
+    };
+  } catch {
+    return null;
+  }
+}
+
+
+export async function listJobsForCompany(companyId: string, input: ListCompanyJobsInput){
+
+    const filter : Record<string, unknown> = {
+        companyId
+    }
+
+    if(input.status){
+        filter.status = input.status
+    }
+
+    if (input.cursor) {
+        const decoded = decodeCursor(input.cursor);
+        if (decoded) {
+            const cursorDate = new Date(decoded.createdAt);
+            filter.$or = [
+                { createdAt: { $lt: cursorDate } },
+                { createdAt: cursorDate, _id: { $lt: decoded.id } },
+            ];
+        }
+    }
+
+    const jobs = await Job.find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(input.limit + 1)
+        .select('title status createdAt');
+
+    return jobs;
 }

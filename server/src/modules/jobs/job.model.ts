@@ -7,7 +7,9 @@ export type IJob = {
     status:'draft'|'open'|'closed',
     deadline?:Date,
     attributes:Record<string, unknown>,
-    screeningQuestions:Record<string, unknown>[]
+    screeningQuestions:Record<string, unknown>[],
+    createdAt:Date,
+    updatedAt:Date
 }
 
 export const JobSchema = new mongoose.Schema<IJob>({
@@ -43,4 +45,5 @@ export const JobSchema = new mongoose.Schema<IJob>({
 },{ timestamps: true}
 )
 
+JobSchema.index({ companyId: 1, createdAt: -1, _id: -1 });
 export const Job = mongoose.model<IJob>('Job',JobSchema)
