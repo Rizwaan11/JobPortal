@@ -17,6 +17,7 @@ export const RecruiterSchema = new mongoose.Schema<IRecruiter>({
         type:Schema.Types.ObjectId,
         ref:'Company',
         required:true,
+        index:true
     },
     companyRole:{
        type:String,

@@ -23,7 +23,7 @@ export const CompanySchema = new mongoose.Schema<ICompany>({
     },
     verified:{
         type:Boolean,
-        default:false
+        default:true
     },
     suspended:{
         type:Boolean,
@@ -32,5 +32,7 @@ export const CompanySchema = new mongoose.Schema<ICompany>({
 
 },{ timestamps: true}
 )
+
+CompanySchema.index({ verified: 1, suspended: 1 });
 
 export const Company = mongoose.model<ICompany>('Company',CompanySchema)

@@ -1,34 +1,21 @@
+import { cookies } from "next/headers";
 
-import { cookies } from 'next/headers';
-
-export class ApiError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
-}
-
-export async function apiFetch<T = unknown>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiFetch(path: string, options: RequestInit = {}) {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
+  const token = cookieStore.get("access_token")?.value;
 
-  const res = await fetch(`${process.env.API_URL}${path}`, {
+  const response = await fetch(`${process.env.API_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...options.headers,
+      Authorization: `Bearer ${token}`,
     },
-    cache: 'no-store',
+    cache: "no-store",
   });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
+  if (!response.ok) {
+    throw new Error("API request failed");
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json();
+  return response.json();
 }

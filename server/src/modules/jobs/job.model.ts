@@ -46,4 +46,5 @@ export const JobSchema = new mongoose.Schema<IJob>({
 )
 
 JobSchema.index({ companyId: 1, createdAt: -1, _id: -1 });
+JobSchema.index({ status: 1, createdAt: -1, _id: -1 });
 export const Job = mongoose.model<IJob>('Job',JobSchema)
