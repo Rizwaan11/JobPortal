@@ -1,5 +1,7 @@
 import {assertCompanyRole} from '../companies/companies.service.js';
 import { getRecruiterCompany } from '../companies/companies.repo.js';
+import { redis } from '../../shared/redis.js';
+import { PUBLIC_BOARD_CACHE_KEY } from '../public/public.service.js';
 
 
 import type { jobInput, ListCompanyJobsInput, UpdateJobInput } from './job.schema.js';
@@ -54,6 +56,12 @@ const company = await getRecruiterCompany(userId);
 
     await assertJobOwnership(jobId, company.companyId.toString());
     await setJobStatus(jobId, company.companyId.toString(), 'open');
+
+    try {
+        await redis.del(PUBLIC_BOARD_CACHE_KEY);
+    } catch (err) {
+        console.error('[cache] Failed to invalidate public board cache:', err);
+    }
 }
 
 
@@ -67,6 +75,12 @@ const company = await getRecruiterCompany(userId);
 
     await assertJobOwnership(jobId, company.companyId.toString());
     await setJobStatus(jobId, company.companyId.toString(), 'closed');
+
+    try {
+        await redis.del(PUBLIC_BOARD_CACHE_KEY);
+    } catch (err) {
+        console.error('[cache] Failed to invalidate public board cache:', err);
+    }
 }
 
 
@@ -94,5 +108,3 @@ export async function getCompanyJobs(userId:string, input: ListCompanyJobsInput)
     return { jobs: items, nextCursor };
 
 }
-
-

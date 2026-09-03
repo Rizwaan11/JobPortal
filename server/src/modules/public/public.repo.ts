@@ -14,6 +14,10 @@ export async function listPublicJobs(input: PublicJobsQueryInput) {
         companyId: { $in: companyIds },
     };
 
+    if (input.q) {
+        filter.$text = { $search: input.q };
+    }
+
     if (input.cursor) {
         const decoded = decodeCursor(input.cursor);
         if (decoded) {

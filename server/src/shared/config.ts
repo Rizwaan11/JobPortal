@@ -24,6 +24,8 @@ const EnvSchema = z.object({
 
   INVITATION_EXPIRES_IN_HOURS: z.coerce.number().int().positive().default(72),
   APP_BASE_URL: z.string().url().default('http://localhost:3000'),
+
+  CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
