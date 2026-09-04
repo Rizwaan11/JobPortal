@@ -25,5 +25,16 @@ export const applicantUpdateSchema = z.object({
     attributes: applicantAttributesUpdateSchema.optional()
 })
 
+export const confirmResumeSchema = z.object({
+    key: z.string().min(1),
+    filename: z.string().min(1),
+})
+
+export const addShortlistSchema = z.object({
+    jobId: z.string().min(1)
+})
+
 export type ApplicantInput = z.infer<typeof applicantSchema>
 export type ApplicantEditInput= z.infer<typeof applicantUpdateSchema>
+export type ConfirmResumeInput = z.infer<typeof confirmResumeSchema>
+export type AddShortlistInput = z.infer<typeof addShortlistSchema>

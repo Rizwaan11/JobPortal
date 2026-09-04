@@ -1,5 +1,7 @@
 import { Applicant } from "./applicant.model.js";
-import { NotFoundError } from "../../shared/errors.js";
+import { Resume } from "./resume.model.js";
+import { ShortlistItem } from "./shortlist.model.js";
+import { ConflictError, NotFoundError } from "../../shared/errors.js";
 import type { ApplicantEditInput, ApplicantInput } from "./applicant.schema.js";
 
 export const assertApplicantOwnership = async (applicantId: string, userId: string) => {
@@ -49,4 +51,36 @@ export const updateApplicantProfile = async (userId: string, input: ApplicantEdi
     }
 
     await Applicant.findOneAndUpdate({ userId }, updateData, { new: true });
+}
+
+export const createResume = async (applicantId: string, filename: string, s3Key: string) => {
+    const resume = await Resume.create({ applicantId, filename, s3Key });
+    return resume;
+}
+
+export const addToShortlist = async (applicantId: string, jobId: string) => {
+    try {
+        const item = await ShortlistItem.create({ applicantId, jobId });
+        return item;
+    } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 11000) {
+            throw new ConflictError('Job already shortlisted');
+        }
+        throw err;
+    }
+}
+
+export const listShortlist = async (applicantId: string) => {
+    const items = await ShortlistItem.find({ applicantId })
+        .populate({
+            path: 'jobId',
+            select: 'title status createdAt companyId',
+            populate: { path: 'companyId', select: 'name' }
+        })
+        .sort({ createdAt: -1 });
+    return items;
+}
+
+export const removeFromShortlist = async (applicantId: string, jobId: string) => {
+    await ShortlistItem.findOneAndDelete({ applicantId, jobId });
 }

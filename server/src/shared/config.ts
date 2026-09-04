@@ -26,6 +26,11 @@ const EnvSchema = z.object({
   APP_BASE_URL: z.string().url().default('http://localhost:3000'),
 
   CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
+  S3_ENDPOINT: z.string().url(),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_BUCKET: z.string(),
+  S3_ACCESS_KEY_ID: z.string(),
+  S3_SECRET_ACCESS_KEY: z.string(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
