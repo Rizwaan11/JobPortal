@@ -1,12 +1,22 @@
 import mongoose, { Schema } from "mongoose";
 
+export type ApplicationSnapshot = {
+    fullName: string,
+    headline: string | null,
+    location: string | null,
+    skills: string[],
+    portfolioLinks: string[],
+    yearsOfExperience: number | null,
+    resumeKey: string | null
+}
+
 export type IApplication = {
     jobId: mongoose.Types.ObjectId,
     applicantId: mongoose.Types.ObjectId,
     stage: 'applied' | 'screening' | 'interview' | 'final_interview' | 'offer' | 'hired' | 'rejected',
     status: 'active' | 'withdrawn',
     answers: Record<string, unknown>[],
-    snapshot: Record<string, unknown>,
+    snapshot: ApplicationSnapshot,
     createdAt: Date,
     updatedAt: Date
 }
@@ -25,7 +35,7 @@ const ApplicationSchema = new mongoose.Schema<IApplication>({
         default: 'active'
     },
     answers: { type: [Schema.Types.Mixed], default: [] } as any,
-    snapshot: { type: Schema.Types.Mixed, default: {} },
+    snapshot: { type: Schema.Types.Mixed, default: {} } as any,
 }, { timestamps: true })
 
 ApplicationSchema.index({ jobId: 1, applicantId: 1 }, { unique: true })

@@ -1,7 +1,7 @@
 import { NotFoundError } from "../../shared/errors.js";
 import { findApplicantByUserId } from "../applicants/applicants.repo.js";
 import type { ApplyToJobsInput } from "./application.schema.js";
-import { getOpenJobs, checkExistingApplications, insertApplication } from "./applications.repo.js";
+import { getOpenJobs, checkExistingApplications, insertApplication, buildApplicantSnapshot } from "./applications.repo.js";
 
 export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Promise<{ created: string[]; skipped: string[] }> => {
     const applicant = await findApplicantByUserId(userId);
@@ -20,6 +20,8 @@ export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Prom
     const alreadyApplied = await checkExistingApplications(applicant._id.toString(), input.jobIds);
     const alreadyAppliedSet = new Set(alreadyApplied);
 
+    const snapshot = await buildApplicantSnapshot(applicant._id.toString());
+
     const created: string[] = [];
     const skipped: string[] = [];
 
@@ -30,7 +32,7 @@ export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Prom
         }
 
         const answers = input.answers[jobId] ?? [];
-        const application = await insertApplication(applicant._id.toString(), jobId, answers);
+        const application = await insertApplication(applicant._id.toString(), jobId, answers, snapshot);
 
         if (application) {
             created.push(application._id.toString());
