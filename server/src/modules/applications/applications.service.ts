@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { NotFoundError } from "../../shared/errors.js";
 import { findApplicantByUserId } from "../applicants/applicants.repo.js";
 import type { ApplyToJobsInput } from "./application.schema.js";
@@ -22,23 +23,26 @@ export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Prom
 
     const snapshot = await buildApplicantSnapshot(applicant._id.toString());
 
+    const jobsToInsert = input.jobIds.filter(id => !alreadyAppliedSet.has(id));
+    const skipped = input.jobIds.filter(id => alreadyAppliedSet.has(id));
     const created: string[] = [];
-    const skipped: string[] = [];
 
-    for (const jobId of input.jobIds) {
-        if (alreadyAppliedSet.has(jobId)) {
-            skipped.push(jobId);
-            continue;
-        }
+    const session = await mongoose.startSession();
+    try {
+        session.startTransaction();
 
-        const answers = input.answers[jobId] ?? [];
-        const application = await insertApplication(applicant._id.toString(), jobId, answers, snapshot);
-
-        if (application) {
+        for (const jobId of jobsToInsert) {
+            const answers = input.answers[jobId] ?? [];
+            const application = await insertApplication(session, applicant._id.toString(), jobId, answers, snapshot);
             created.push(application._id.toString());
-        } else {
-            skipped.push(jobId);
         }
+
+        await session.commitTransaction();
+    } catch (err) {
+        await session.abortTransaction();
+        throw err;
+    } finally {
+        session.endSession();
     }
 
     return { created, skipped };

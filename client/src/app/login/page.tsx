@@ -26,7 +26,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
+    const data = await res.json();
+    router.push(data.role === 'applicant' ? '/portal' : '/dashboard');
   }
 
   return (

@@ -3,7 +3,8 @@ import type { ApplicationSnapshot } from "./application.model.js";
 import { Job } from "../jobs/job.model.js";
 import { Applicant } from "../applicants/applicant.model.js";
 import { Resume } from "../applicants/resume.model.js";
-import { NotFoundError } from "../../shared/errors.js";
+import { ConflictError, NotFoundError } from "../../shared/errors.js";
+import type { ClientSession } from "mongoose";
 
 export const checkExistingApplications = async (applicantId: string, jobIds: string[]): Promise<string[]> => {
     const existing = await Application.find({ applicantId, jobId: { $in: jobIds } });
@@ -11,17 +12,21 @@ export const checkExistingApplications = async (applicantId: string, jobIds: str
 }
 
 export const insertApplication = async (
+    session: ClientSession,
     applicantId: string,
     jobId: string,
     answers: Record<string, unknown>[],
     snapshot: ApplicationSnapshot
 ) => {
     try {
-        const application = await Application.create({ applicantId, jobId, answers, snapshot });
+        const [application] = await Application.create([{ applicantId, jobId, answers, snapshot }], { session });
+        if (!application) {
+            throw new Error('Application insert returned no document');
+        }
         return application;
     } catch (err: unknown) {
         if (err && typeof err === 'object' && 'code' in err && err.code === 11000) {
-            return null;
+            throw new ConflictError('Job already applied to');
         }
         throw err;
     }

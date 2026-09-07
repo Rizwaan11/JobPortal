@@ -35,5 +35,5 @@ export async function POST(request:Request){
     path: "/",
   });
 
-  return NextResponse.json({ message: 'Logged in' });
+  return NextResponse.json({ message: 'Logged in', role: data.role });
 }
