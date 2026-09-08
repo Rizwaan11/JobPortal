@@ -12,3 +12,20 @@ export const applyToJobsSchema = z.object({
 })
 
 export type ApplyToJobsInput = z.infer<typeof applyToJobsSchema>
+
+export const scheduleInterviewSchema = z.object({
+    scheduledAt: z.coerce.date().refine((d) => d.getTime() > Date.now(), {
+        message: 'scheduledAt must be in the future'
+    }),
+    meetingLink: z.string().min(1),
+    notes: z.string().optional()
+})
+
+export type ScheduleInterviewInput = z.infer<typeof scheduleInterviewSchema>
+
+export const recordFeedbackSchema = z.object({
+    feedback: z.string().min(1),
+    outcome: z.enum(['moved_forward', 'rejected'])
+})
+
+export type RecordFeedbackInput = z.infer<typeof recordFeedbackSchema>

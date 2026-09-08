@@ -6,6 +6,7 @@ import {companiesRouter} from './modules/companies/companies.routes.js'
 import {adminRouter} from './modules/admin/admin.routes.js'
 import {jobsRouter} from './modules/jobs/jobs.routes.js'
 import { publicRouter } from './modules/public/public.routes.js'
+import { applicationsRouter } from './modules/applications/applications.routes.js'
 
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/companies', companiesRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/public', publicRouter);
+app.use('/api/applications', applicationsRouter);
 
 
 app.use(errorHandler)
