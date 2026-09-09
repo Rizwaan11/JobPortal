@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import { Applicant } from "./applicant.model.js";
+import { Application } from "../applications/application.model.js";
 import { Resume } from "./resume.model.js";
 import { ShortlistItem } from "./shortlist.model.js";
 import { ConflictError, NotFoundError } from "../../shared/errors.js";
@@ -83,4 +85,56 @@ export const listShortlist = async (applicantId: string) => {
 
 export const removeFromShortlist = async (applicantId: string, jobId: string) => {
     await ShortlistItem.findOneAndDelete({ applicantId, jobId });
+}
+
+// Aggregation selects the next matching interview for each application.
+export const findApplicationsForApplicant = async (applicantId: string) => {
+    const applications = await Application.aggregate([
+        { $match: { applicantId: new mongoose.Types.ObjectId(applicantId) } },
+        { $sort: { createdAt: -1 } },
+        { $lookup: { from: 'jobs', localField: 'jobId', foreignField: '_id', as: 'job' } },
+        { $unwind: '$job' },
+        { $lookup: { from: 'companies', localField: 'job.companyId', foreignField: '_id', as: 'company' } },
+        { $unwind: '$company' },
+        {
+            $lookup: {
+                from: 'interviews',
+                let: { appId: '$_id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$applicationId', '$$appId'] },
+                            outcome: 'pending',
+                            scheduledAt: { $gt: new Date() }
+                        }
+                    },
+                    { $sort: { scheduledAt: 1 } },
+                    { $limit: 1 },
+                    {
+                        $project: {
+                            _id: 1,
+                            scheduledAt: 1,
+                            meetingLink: 1,
+                            notes: 1
+                        }
+                    }
+                ],
+                as: 'upcomingInterview'
+            }
+        },
+        {
+            $project: {
+                jobId: 1,
+                jobTitle: '$job.title',
+                companyName: '$company.name',
+                stage: 1,
+                status: 1,
+                createdAt: 1,
+                upcomingInterview: {
+                    $ifNull: [{ $arrayElemAt: ['$upcomingInterview', 0] }, null]
+                }
+            }
+        }
+    ]);
+    return applications;
 }

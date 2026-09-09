@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Application } from "./application.model.js";
 import type { ApplicationSnapshot } from "./application.model.js";
 import { Interview } from "./interview.model.js";
@@ -57,12 +58,7 @@ export const buildApplicantSnapshot = async (applicantId: string): Promise<Appli
     };
 }
 
-// Chapter 55 — recruiter-side ownership check.
-// Mongo has no JOIN, so this is two sequential lookups instead of the
-// course's single SQL join. Both "doesn't exist" and "exists but belongs
-// to another company" return the SAME NotFoundError with the SAME message,
-// so a recruiter probing IDs can't tell the two cases apart (IDOR-safe,
-// same pattern as assertJobOwnership in jobs.repo.ts).
+// Use the same response for missing and out-of-scope applications.
 export const findApplicationForCompany = async (applicationId: string, companyId: string) => {
     const application = await Application.findById(applicationId);
     if (!application) {
@@ -86,12 +82,6 @@ export const updateApplicationStage = async (applicationId: string, stage: strin
     return updated;
 }
 
-// Chapter 56 — pulls the applicant's email and job title through TWO
-// populate hops (application -> applicant -> user, and application -> job).
-// This is a straight "follow the references" read, so populate() is enough
-// here. Chapter 58 needs something populate() can't do (embedding only the
-// latest/matching sub-document per parent) — that's when we reach for the
-// aggregation pipeline instead.
 export const findApplicationWithApplicant = async (applicationId: string) => {
     const application = await Application.findById(applicationId)
         .populate({ path: 'jobId', select: 'title' })
@@ -112,11 +102,7 @@ export const createInterview = async (
     return Interview.create({ applicationId, scheduledAt, meetingLink, notes });
 }
 
-// Chapter 57 — same IDOR-safe pattern as findApplicationForCompany, but one
-// hop deeper: interview -> application -> job -> companyId. Every failure
-// branch throws the identical NotFoundError message so a recruiter probing
-// interview IDs from another company can't distinguish "no such interview"
-// from "exists but isn't yours".
+// Use the same response for missing and out-of-scope interviews.
 export const findInterviewForCompany = async (interviewId: string, companyId: string) => {
     const interview = await Interview.findById(interviewId);
     if (!interview) {
@@ -146,4 +132,47 @@ export const updateInterviewFeedback = async (
         { feedback, outcome },
         { new: true }
     );
+}
+
+// Applications are scoped after joining jobs because companyId is stored on Job.
+export const findApplicationsForCompany = async (companyId: string) => {
+    const applications = await Application.aggregate([
+        { $lookup: { from: 'jobs', localField: 'jobId', foreignField: '_id', as: 'job' } },
+        { $unwind: '$job' },
+        { $match: { 'job.companyId': new mongoose.Types.ObjectId(companyId) } },
+        {
+            $lookup: {
+                from: 'interviews',
+                let: { appId: '$_id' },
+                pipeline: [
+                    { $match: { $expr: { $eq: ['$applicationId', '$$appId'] } } },
+                    { $sort: { createdAt: -1 } },
+                    { $limit: 1 },
+                    {
+                        $project: {
+                            _id: 1,
+                            scheduledAt: 1,
+                            meetingLink: 1,
+                            outcome: 1
+                        }
+                    }
+                ],
+                as: 'latestInterview'
+            }
+        },
+        {
+            $project: {
+                stage: 1,
+                status: 1,
+                createdAt: 1,
+                headline: '$snapshot.headline',
+                jobTitle: '$job.title',
+                latestInterview: {
+                    $ifNull: [{ $arrayElemAt: ['$latestInterview', 0] }, null]
+                }
+            }
+        },
+        { $sort: { stage: 1, createdAt: -1 } }
+    ]);
+    return applications;
 }

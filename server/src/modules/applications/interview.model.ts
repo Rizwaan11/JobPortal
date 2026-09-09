@@ -24,5 +24,6 @@ const InterviewSchema = new mongoose.Schema<IInterview>({
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
 InterviewSchema.index({ applicationId: 1 })
+InterviewSchema.index({ applicationId: 1, outcome: 1, scheduledAt: 1 })
 
 export const Interview = mongoose.model<IInterview>('Interview', InterviewSchema)

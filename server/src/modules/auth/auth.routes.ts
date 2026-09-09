@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { validateBody } from '../../shared/validate.js';
+import { authMiddleware } from '../../shared/auth-middleware.js';
 import { registerSchema, loginSchema, refreshSchema, logoutSchema, verifyEmailSchema, resendVerificationSchema, acceptInvitationSchema } from './auth.schema.js';
-import { register, login, refresh, logout, verifyEmail, resendVerification, acceptInvitation } from './auth.service.js';
+import { register, login, refresh, logout, verifyEmail, resendVerification, acceptInvitation, getCurrentUser } from './auth.service.js';
 
 export const authRouter = Router();
 
@@ -27,6 +28,11 @@ authRouter.post('/logout', async (req, res) => {
   const body = validateBody(logoutSchema, req.body);
   await logout(body.refreshToken);
   res.status(204).send();
+});
+
+authRouter.get('/me', authMiddleware, async (req, res) => {
+  const user = await getCurrentUser(req.user!.userId);
+  res.json({ user });
 });
 
 authRouter.post('/verify-email', async (req, res) => {

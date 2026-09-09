@@ -4,6 +4,7 @@ import { requireRole } from "../../shared/require-role.js";
 import { validateBody } from "../../shared/validate.js";
 import { companySchema, inviteMemberSchema, updateMemberSchema } from "./companies.schema.js";
 import { getMyCompany, openWorkspace, inviteMember, getMembers, changeMemberRole, deleteMember } from "./companies.service.js";
+import { getCompanyPipeline } from "../applications/applications.service.js";
 export const companiesRouter = Router();
 
 
@@ -12,6 +13,11 @@ companiesRouter.use(authMiddleware, requireRole('recruiter'))
 companiesRouter.get('/me', async (req, res) => {
     const company = await getMyCompany(req.user!.userId);
     res.json(company);
+});
+
+companiesRouter.get('/applications', async (req, res) => {
+    const pipeline = await getCompanyPipeline(req.user!.userId);
+    res.json({ pipeline });
 });
 
 companiesRouter.post('/', async (req, res) => {
@@ -41,5 +47,4 @@ companiesRouter.delete('/members/:recruiterId', async (req, res) => {
     await deleteMember(req.user!.userId, req.params.recruiterId);
     res.status(204).send();
 });
-
 

@@ -22,9 +22,7 @@ import { createRecruiter } from '../companies/companies.repo.js';
 import type { RegisterInput, LoginInput, AcceptInvitationInput } from './auth.schema.js';
 import { signAccessToken } from '../../shared/token.js';
 
-// Used in the login path when no user is found, so the timing cost of
-// bcrypt.compare is paid the same whether the email exists or not.
-// Generated with: node -e "require('bcryptjs').hash('__dummy__',12).then(console.log)"
+// Precomputed hash keeps login timing similar when the email does not exist.
 const DUMMY_HASH = '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36zLklGLsR9XFKQZ5kQlbri';
 
 
@@ -112,6 +110,20 @@ export async function refresh(rawToken: string): Promise<{ accessToken: string; 
 export async function logout(rawToken: string): Promise<void> {
   const hash = crypto.createHash('sha256').update(rawToken).digest('hex');
   await deleteRefreshTokenByHash(hash);
+}
+
+export async function getCurrentUser(userId: string) {
+  const user = await findUserById(userId);
+  if (!user || user.status !== 'active') {
+    throw new UnauthorizedError('Invalid or inactive user');
+  }
+
+  return {
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+    status: user.status,
+  };
 }
 
 export async function verifyEmail(email: string, otp: string): Promise<void> {

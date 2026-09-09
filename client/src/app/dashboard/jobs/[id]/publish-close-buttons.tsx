@@ -1,4 +1,3 @@
-// src/app/dashboard/jobs/[id]/publish-close-buttons.tsx
 'use client';
 
 import { useState } from 'react';

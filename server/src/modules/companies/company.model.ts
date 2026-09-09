@@ -23,7 +23,7 @@ export const CompanySchema = new mongoose.Schema<ICompany>({
     },
     verified:{
         type:Boolean,
-        default:true
+        default:false
     },
     suspended:{
         type:Boolean,

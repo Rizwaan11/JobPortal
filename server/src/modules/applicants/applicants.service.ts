@@ -3,7 +3,7 @@ import { ConflictError, ForbiddenError, NotFoundError } from "../../shared/error
 import { getPresignedUploadUrl } from "../../shared/storage.js";
 
 import type { ApplicantInput, ApplicantEditInput, ConfirmResumeInput, AddShortlistInput } from './applicant.schema.js'
-import { createApplicantProfile, createResume, findApplicantByUserId, updateApplicantProfile, addToShortlist, listShortlist, removeFromShortlist } from "./applicants.repo.js";
+import { createApplicantProfile, createResume, findApplicantByUserId, updateApplicantProfile, addToShortlist, listShortlist, removeFromShortlist, findApplicationsForApplicant } from "./applicants.repo.js";
 
 
 export const createProfile = async (userId:string, input:ApplicantInput)=>{
@@ -87,4 +87,12 @@ export const removeJobFromShortlist = async (userId: string, jobId: string) => {
         throw new NotFoundError('Applicant profile not found');
     }
     await removeFromShortlist(applicant._id.toString(), jobId);
+}
+
+export const getMyApplications = async (userId: string) => {
+    const applicant = await findApplicantByUserId(userId);
+    if (!applicant) {
+        throw new NotFoundError('Applicant profile not found');
+    }
+    return findApplicationsForApplicant(applicant._id.toString());
 }
