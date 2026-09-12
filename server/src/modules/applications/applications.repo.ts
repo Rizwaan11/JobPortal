@@ -7,6 +7,8 @@ import { Applicant } from "../applicants/applicant.model.js";
 import { Resume } from "../applicants/resume.model.js";
 import { ConflictError, NotFoundError } from "../../shared/errors.js";
 import type { ClientSession } from "mongoose";
+import { User } from "../auth/user.model.js";
+import { Company } from "../companies/company.model.js";
 
 export const checkExistingApplications = async (applicantId: string, jobIds: string[]): Promise<string[]> => {
     const existing = await Application.find({ applicantId, jobId: { $in: jobIds } });
@@ -176,3 +178,24 @@ export const findApplicationsForCompany = async (companyId: string) => {
     ]);
     return applications;
 }
+
+
+export const findApplicantEmailByUserId = async (
+  userId: string
+): Promise<string> => {
+  const user = await User.findById(userId).select("email");
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  return user.email;
+};
+
+export const findCompaniesByIds = async (
+  companyIds: string[]
+) => {
+  return Company.find({
+    _id: { $in: companyIds },
+  }).select("name");
+};

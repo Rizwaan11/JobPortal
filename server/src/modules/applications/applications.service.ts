@@ -3,7 +3,7 @@ import { NotFoundError, ForbiddenError, BadRequestError } from "../../shared/err
 import { findApplicantByUserId } from "../applicants/applicants.repo.js";
 import { getRecruiterCompany } from "../companies/companies.repo.js";
 import { assertCompanyRole } from "../companies/companies.service.js";
-import { sendInterviewNotification } from "../../shared/mailer.js";
+import { queue } from "../../shared/queue.js";
 import type { ApplyToJobsInput, ScheduleInterviewInput, RecordFeedbackInput } from "./application.schema.js";
 import {
     getOpenJobs,
@@ -16,7 +16,9 @@ import {
     createInterview,
     findInterviewForCompany,
     updateInterviewFeedback,
-    findApplicationsForCompany
+    findApplicationsForCompany,
+    findApplicantEmailByUserId,
+    findCompaniesByIds
 } from "./applications.repo.js";
 
 export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Promise<{ created: string[]; skipped: string[] }> => {
@@ -42,6 +44,45 @@ export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Prom
     const skipped = input.jobIds.filter(id => alreadyAppliedSet.has(id));
     const created: string[] = [];
 
+    const confirmationPayloads: {
+        applicantEmail: string;
+        jobTitle: string;
+        companyName: string;
+    }[] = [];
+
+    if (jobsToInsert.length > 0) {
+        const applicantEmail = await findApplicantEmailByUserId(userId);
+        const companyIds = [
+            ...new Set(openJobs.map(job => job.companyId.toString()))
+        ];
+        const companies = await findCompaniesByIds(companyIds);
+
+        const jobsById = new Map(
+            openJobs.map(job => [job._id.toString(), job])
+        );
+        const companyNamesById = new Map(
+            companies.map(company => [company._id.toString(), company.name])
+        );
+
+        for (const jobId of jobsToInsert) {
+            const job = jobsById.get(jobId);
+            if (!job) {
+                throw new NotFoundError('Job not found');
+            }
+
+            const companyName = companyNamesById.get(job.companyId.toString());
+            if (!companyName) {
+                throw new NotFoundError('Company not found');
+            }
+
+            confirmationPayloads.push({
+                applicantEmail,
+                jobTitle: job.title,
+                companyName
+            });
+        }
+    }
+
     const session = await mongoose.startSession();
     try {
         session.startTransaction();
@@ -58,6 +99,10 @@ export const applyToJobs = async (userId: string, input: ApplyToJobsInput): Prom
         throw err;
     } finally {
         session.endSession();
+    }
+
+    for (const payload of confirmationPayloads) {
+        await queue.add('send-application-confirmation', payload);
     }
 
     return { created, skipped };
@@ -130,19 +175,13 @@ export const scheduleInterview = async (userId: string, applicationId: string, i
     const applicant = application.applicantId as any;
     const job = application.jobId as any;
 
-    try {
-        await sendInterviewNotification(
-            applicant.userId.email,
-            job.title,
-            input.scheduledAt,
-            input.meetingLink,
-            input.notes ?? null
-        );
-    } catch (err) {
-        // The interview remains saved if notification delivery fails.
-        // TODO: Send notifications through a background job.
-        console.error('[mailer] Failed to send interview notification:', err);
-    }
+    await queue.add('send-interview-notification', {
+        applicantEmail: applicant.userId.email,
+        jobTitle: job.title,
+        scheduledAt: interview.scheduledAt.toISOString(),
+        meetingLink: interview.meetingLink,
+        notes: interview.notes
+    });
 
     return interview;
 }

@@ -68,3 +68,39 @@ export async function sendInterviewNotification(
     ].filter(Boolean).join('\n'),
   });
 }
+
+export async function sendApplicationConfirmationEmail(
+  to: string,
+  jobTitle: string,
+  companyName: string
+): Promise<void> {
+  await transporter.sendMail({
+    from: config.SMTP_FROM,
+    to,
+    subject: `Application received: ${jobTitle} at ${companyName}`,
+    text: [
+      `Thank you for applying to ${jobTitle} at ${companyName}.`,
+      "Your application has been received and is under review.",
+      "You will hear back from the hiring team if your profile is a match.",
+    ].join("\n\n"),
+  });
+}
+
+export async function sendRecruiterDigestEmail(
+  to: string,
+  companyName: string,
+  openJobsCount: number,
+  applicationsLast7Days: number
+): Promise<void> {
+  await transporter.sendMail({
+    from: config.SMTP_FROM,
+    to,
+    subject: `Weekly digest for ${companyName}`,
+    text: [
+      `Weekly hiring summary for ${companyName}`,
+      "",
+      `Open jobs: ${openJobsCount}`,
+      `Applications in the last 7 days: ${applicationsLast7Days}`,
+    ].join("\n"),
+  });
+}

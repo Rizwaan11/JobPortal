@@ -4,7 +4,8 @@ export type IResume = {
     applicantId: mongoose.Types.ObjectId,
     filename: string,
     s3Key: string,
-    uploadedAt: Date
+    uploadedAt: Date,
+    wordCount?: number | null
 }
 
 const ResumeSchema = new mongoose.Schema<IResume>({
@@ -12,6 +13,7 @@ const ResumeSchema = new mongoose.Schema<IResume>({
     filename: { type: String, required: true },
     s3Key: { type: String, required: true },
     uploadedAt: { type: Date, default: Date.now },
+    wordCount: { type: Number, default: null }
 })
 
 export const Resume = mongoose.model<IResume>('Resume', ResumeSchema)

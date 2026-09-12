@@ -5,6 +5,7 @@ import { getPresignedUploadUrl } from "../../shared/storage.js";
 import type { ApplicantInput, ApplicantEditInput, ConfirmResumeInput, AddShortlistInput } from './applicant.schema.js'
 import { createApplicantProfile, createResume, findApplicantByUserId, updateApplicantProfile, addToShortlist, listShortlist, removeFromShortlist, findApplicationsForApplicant } from "./applicants.repo.js";
 
+import { queue } from "../../shared/queue.js";
 
 export const createProfile = async (userId:string, input:ApplicantInput)=>{
     const isApplicantExist = await findApplicantByUserId(userId)
@@ -62,6 +63,11 @@ export const confirmResumeUpload = async (userId: string, input: ConfirmResumeIn
     }
 
     const resume = await createResume(applicant._id.toString(), input.filename, input.key);
+
+    await queue.add('process-resume', {
+        resumeId: resume._id.toString(),
+        s3Key: resume.s3Key
+    });
     return resume;
 }
 

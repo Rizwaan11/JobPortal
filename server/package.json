@@ -7,6 +7,8 @@
     "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "tsc",
     "start": "node --env-file=.env dist/server.js",
+    "worker": "tsx watch --env-file=.env src/worker/worker.ts",
+    "start:worker": "node --env-file=.env dist/worker/worker.js",
     "typecheck": "tsc --noEmit",
     "seed": "tsx --env-file=.env scripts/seed.ts"
   },
@@ -32,10 +34,14 @@
     "@aws-sdk/client-s3": "^3.1125.0",
     "@aws-sdk/s3-request-presigner": "^3.1125.0",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^6.3.4",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.1",
     "nodemailer": "^9.0.5",
+    "rate-limit-redis": "^6.0.1",
     "redis": "^6.2.0",
     "zod": "^3.25.76"
   }
