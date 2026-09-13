@@ -1,4 +1,5 @@
 import express from 'express';
+import type { RequestHandler } from 'express';
 import cors from 'cors';
 import * as helmetModule from 'helmet';
 import { errorHandler } from './shared/error-handler.js';
@@ -13,11 +14,12 @@ import { healthRouter } from './modules/health/health.routes.js';
 import { config } from './shared/config.js';
 import { globalLimiter } from './shared/rate-limiter.js';
 
+const helmet = helmetModule.default as unknown as () => RequestHandler;
 
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
-app.use(helmetModule.default());
+app.use(helmet());
 app.use(cors({
   origin: config.FRONTEND_URL,
   credentials: true,
