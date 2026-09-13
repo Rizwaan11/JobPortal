@@ -12,9 +12,13 @@ import { publicRouter } from './modules/public/public.routes.js'
 import { applicationsRouter } from './modules/applications/applications.routes.js'
 import { healthRouter } from './modules/health/health.routes.js';
 import { config } from './shared/config.js';
+import { connectDB } from './shared/db.js';
 import { globalLimiter } from './shared/rate-limiter.js';
+import { connectRedis } from './shared/redis.js';
 
 const helmet = helmetModule.default as unknown as () => RequestHandler;
+
+await Promise.all([connectDB(), connectRedis()]);
 
 const app = express();
 app.set('trust proxy', 1);

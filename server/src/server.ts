@@ -1,12 +1,9 @@
 import mongoose from "mongoose";
 import {config} from './shared/config.js';
-import { connectDB } from "./shared/db.js";
 import { logger } from "./shared/logger.js";
-import { connectRedis, redis } from "./shared/redis.js";
+import { redis } from "./shared/redis.js";
 
 try {
-  await connectDB();
-  await connectRedis();
   const { default: app } = await import('./app.js');
 
   const server = app.listen(config.PORT, () => {
