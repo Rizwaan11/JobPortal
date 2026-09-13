@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
+import * as helmetModule from 'helmet';
 import { errorHandler } from './shared/error-handler.js';
 import {authRouter} from './modules/auth/auth.routes.js'
 import {applicantsRouter} from './modules/applicants/applicants.routes.js'
@@ -15,8 +15,9 @@ import { globalLimiter } from './shared/rate-limiter.js';
 
 
 const app = express();
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
-app.use(helmet());
+app.use(helmetModule.default());
 app.use(cors({
   origin: config.FRONTEND_URL,
   credentials: true,
