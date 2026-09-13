@@ -5,6 +5,10 @@ const EnvSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
 
+  LOG_LEVEL: z
+    .enum(["debug", "info", "warn", "error"])
+    .default("info"),
+
   PORT: z.coerce.number().int().positive().default(3000),
 
   MONGO_URI: z.string().url(),
@@ -24,8 +28,11 @@ const EnvSchema = z.object({
 
   INVITATION_EXPIRES_IN_HOURS: z.coerce.number().int().positive().default(72),
   APP_BASE_URL: z.string().url().default('http://localhost:3000'),
+  FRONTEND_URL: z.string().url().default('http://localhost:3000'),
 
   CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
   S3_ENDPOINT: z.string().url(),
   S3_REGION: z.string().default('us-east-1'),
   S3_BUCKET: z.string(),

@@ -1,4 +1,5 @@
 import { Worker, type Job } from "bullmq";
+import mongoose from "mongoose";
 import { config } from "../shared/config.js";
 import { connectDB } from "../shared/db.js";
 import {
@@ -104,3 +105,43 @@ worker.on("error", (error) => {
 });
 
 console.log("[worker] Waiting for jobs...");
+
+let isShuttingDown = false;
+
+async function shutdownWorker(): Promise<void> {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  console.log("[worker] Shutting down...");
+
+  const forceExitTimer = setTimeout(() => {
+    console.error("[worker] Shutdown timed out");
+    process.exit(1);
+  }, 10_000);
+
+  forceExitTimer.unref();
+
+  try {
+    await worker.close();
+    await queue.close();
+    await mongoose.disconnect();
+
+    clearTimeout(forceExitTimer);
+    console.log("[worker] Shutdown completed");
+    process.exit(0);
+  } catch (error) {
+    clearTimeout(forceExitTimer);
+    console.error("[worker] Shutdown failed", error);
+    process.exit(1);
+  }
+}
+
+process.once("SIGINT", () => {
+  void shutdownWorker();
+});
+
+process.once("SIGTERM", () => {
+  void shutdownWorker();
+});
