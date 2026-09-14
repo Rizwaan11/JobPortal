@@ -1,5 +1,6 @@
 import { NotFoundError, ForbiddenError, ConflictError } from "../../shared/errors.js";
 import { redis } from "../../shared/redis.js";
+import { logger } from "../../shared/logger.js";
 import { PUBLIC_BOARD_CACHE_KEY } from "../public/public.service.js";
 import {
     listCompanies as listCompaniesRepo,
@@ -21,7 +22,7 @@ const invalidatePublicBoardCache = async () => {
     try {
         await redis.del(PUBLIC_BOARD_CACHE_KEY);
     } catch (err) {
-        console.error('[cache] Failed to invalidate public board cache:', err);
+        logger.warn({ err }, 'Failed to invalidate public board cache');
     }
 }
 

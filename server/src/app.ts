@@ -15,6 +15,8 @@ import { config } from './shared/config.js';
 import { connectDB } from './shared/db.js';
 import { globalLimiter } from './shared/rate-limiter.js';
 import { connectRedis } from './shared/redis.js';
+import { requestIdMiddleware } from './shared/request-id.js';
+import { httpLogger } from './shared/http-logger.js';
 
 const helmet = helmetModule.default as unknown as () => RequestHandler;
 
@@ -23,6 +25,8 @@ await Promise.all([connectDB(), connectRedis()]);
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+app.use(requestIdMiddleware);
+app.use(httpLogger);
 app.use(helmet());
 app.use(cors({
   origin: config.FRONTEND_URL,

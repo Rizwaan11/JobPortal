@@ -2,6 +2,7 @@ import {assertCompanyRole} from '../companies/companies.service.js';
 import { getRecruiterCompany } from '../companies/companies.repo.js';
 import { redis } from '../../shared/redis.js';
 import { PUBLIC_BOARD_CACHE_KEY } from '../public/public.service.js';
+import { logger } from '../../shared/logger.js';
 
 
 import type { jobInput, ListCompanyJobsInput, UpdateJobInput } from './job.schema.js';
@@ -60,7 +61,7 @@ const company = await getRecruiterCompany(userId);
     try {
         await redis.del(PUBLIC_BOARD_CACHE_KEY);
     } catch (err) {
-        console.error('[cache] Failed to invalidate public board cache:', err);
+        logger.warn({ err }, 'Failed to invalidate public board cache');
     }
 }
 
@@ -79,7 +80,7 @@ const company = await getRecruiterCompany(userId);
     try {
         await redis.del(PUBLIC_BOARD_CACHE_KEY);
     } catch (err) {
-        console.error('[cache] Failed to invalidate public board cache:', err);
+        logger.warn({ err }, 'Failed to invalidate public board cache');
     }
 }
 
