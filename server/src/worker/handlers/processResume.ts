@@ -3,9 +3,9 @@ import { downloadObject } from "../../shared/storage.js";
 
 export async function processResume(
   resumeId: string,
-  s3Key: string
+  storageKey: string
 ): Promise<void> {
-  const buffer = await downloadObject(s3Key);
+  const buffer = await downloadObject(storageKey);
   const text = buffer.toString(
     "utf-8",
     0,

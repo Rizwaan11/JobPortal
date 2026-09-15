@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import {config} from './shared/config.js';
 import { logger } from "./shared/logger.js";
+import { queue } from "./shared/queue.js";
 import { redis } from "./shared/redis.js";
 
 try {
@@ -29,6 +30,7 @@ try {
 
     server.close(async () => {
       try {
+        await queue.close();
         await mongoose.disconnect();
 
         if (redis.isOpen) {

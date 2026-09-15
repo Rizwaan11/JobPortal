@@ -3,6 +3,8 @@ import { Applicant } from "./applicant.model.js";
 import { Application } from "../applications/application.model.js";
 import { Resume } from "./resume.model.js";
 import { ShortlistItem } from "./shortlist.model.js";
+import { Job } from "../jobs/job.model.js";
+import { Company } from "../companies/company.model.js";
 import { ConflictError, NotFoundError } from "../../shared/errors.js";
 import type { ApplicantEditInput, ApplicantInput } from "./applicant.schema.js";
 
@@ -55,8 +57,8 @@ export const updateApplicantProfile = async (userId: string, input: ApplicantEdi
     await Applicant.findOneAndUpdate({ userId }, updateData, { new: true });
 }
 
-export const createResume = async (applicantId: string, filename: string, s3Key: string) => {
-    const resume = await Resume.create({ applicantId, filename, s3Key });
+export const createResume = async (applicantId: string, filename: string, storageKey: string) => {
+    const resume = await Resume.create({ applicantId, filename, storageKey });
     return resume;
 }
 
@@ -72,6 +74,25 @@ export const addToShortlist = async (applicantId: string, jobId: string) => {
     }
 }
 
+export const findOpenVisibleJob = async (jobId: string) => {
+    if (!mongoose.isValidObjectId(jobId)) {
+        return null;
+    }
+
+    const job = await Job.findOne({ _id: jobId, status: 'open' }).select('companyId');
+    if (!job) {
+        return null;
+    }
+
+    const company = await Company.exists({
+        _id: job.companyId,
+        verified: true,
+        suspended: false,
+    });
+
+    return company ? job : null;
+}
+
 export const listShortlist = async (applicantId: string) => {
     const items = await ShortlistItem.find({ applicantId })
         .populate({
@@ -84,7 +105,11 @@ export const listShortlist = async (applicantId: string) => {
 }
 
 export const removeFromShortlist = async (applicantId: string, jobId: string) => {
-    await ShortlistItem.findOneAndDelete({ applicantId, jobId });
+    if (!mongoose.isValidObjectId(jobId)) {
+        return null;
+    }
+
+    return ShortlistItem.findOneAndDelete({ applicantId, jobId });
 }
 
 // Aggregation selects the next matching interview for each application.

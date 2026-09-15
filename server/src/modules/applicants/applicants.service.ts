@@ -1,9 +1,9 @@
 import crypto from "crypto";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../shared/errors.js";
-import { getPresignedUploadUrl } from "../../shared/storage.js";
+import { getSignedUploadParams } from "../../shared/storage.js";
 
 import type { ApplicantInput, ApplicantEditInput, ConfirmResumeInput, AddShortlistInput } from './applicant.schema.js'
-import { createApplicantProfile, createResume, findApplicantByUserId, updateApplicantProfile, addToShortlist, listShortlist, removeFromShortlist, findApplicationsForApplicant } from "./applicants.repo.js";
+import { createApplicantProfile, createResume, findApplicantByUserId, updateApplicantProfile, addToShortlist, findOpenVisibleJob, listShortlist, removeFromShortlist, findApplicationsForApplicant } from "./applicants.repo.js";
 
 import { queue } from "../../shared/queue.js";
 
@@ -48,8 +48,7 @@ export const getResumeUploadUrl = async (userId: string) => {
     }
 
     const key = `resumes/${applicant._id}/${crypto.randomUUID()}.pdf`;
-    const uploadUrl = await getPresignedUploadUrl(key, 'application/pdf');
-    return { uploadUrl, key };
+    return getSignedUploadParams(key);
 }
 
 export const confirmResumeUpload = async (userId: string, input: ConfirmResumeInput) => {
@@ -66,7 +65,7 @@ export const confirmResumeUpload = async (userId: string, input: ConfirmResumeIn
 
     await queue.add('process-resume', {
         resumeId: resume._id.toString(),
-        s3Key: resume.s3Key
+        storageKey: resume.storageKey
     });
     return resume;
 }
@@ -76,6 +75,12 @@ export const addJobToShortlist = async (userId: string, input: AddShortlistInput
     if (!applicant) {
         throw new NotFoundError('Applicant profile not found');
     }
+
+    const job = await findOpenVisibleJob(input.jobId);
+    if (!job) {
+        throw new NotFoundError('Job not found or not open');
+    }
+
     return addToShortlist(applicant._id.toString(), input.jobId);
 }
 
@@ -92,7 +97,10 @@ export const removeJobFromShortlist = async (userId: string, jobId: string) => {
     if (!applicant) {
         throw new NotFoundError('Applicant profile not found');
     }
-    await removeFromShortlist(applicant._id.toString(), jobId);
+    const removed = await removeFromShortlist(applicant._id.toString(), jobId);
+    if (!removed) {
+        throw new NotFoundError('Shortlist item not found');
+    }
 }
 
 export const getMyApplications = async (userId: string) => {

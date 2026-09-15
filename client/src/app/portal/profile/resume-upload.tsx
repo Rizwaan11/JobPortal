@@ -14,15 +14,29 @@ export default function ResumeUpload() {
     setMessage('');
 
     try {
-      const { uploadUrl, key } = await fetch('/api/applicants/profile/resume-upload', { method: 'POST' }).then((r) => r.json());
+      const uploadDetailsResponse = await fetch('/api/applicants/profile/resume-upload', { method: 'POST' });
+      if (!uploadDetailsResponse.ok) throw new Error('Could not prepare upload');
 
-      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': 'application/pdf' } });
+      const { uploadUrl, key, timestamp, signature, apiKey, type, allowedFormats } = await uploadDetailsResponse.json();
 
-      await fetch('/api/applicants/profile/resume', {
+      const uploadBody = new FormData();
+      uploadBody.append('file', file);
+      uploadBody.append('public_id', key);
+      uploadBody.append('timestamp', String(timestamp));
+      uploadBody.append('signature', signature);
+      uploadBody.append('api_key', apiKey);
+      uploadBody.append('type', type);
+      uploadBody.append('allowed_formats', allowedFormats);
+
+      const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: uploadBody });
+      if (!uploadResponse.ok) throw new Error('Cloud upload failed');
+
+      const confirmResponse = await fetch('/api/applicants/profile/resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key, filename: file.name }),
       });
+      if (!confirmResponse.ok) throw new Error('Could not save résumé');
 
       setMessage('Résumé uploaded successfully');
     } catch {

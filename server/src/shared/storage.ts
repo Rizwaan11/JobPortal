@@ -1,41 +1,44 @@
-import {
-    S3Client,
-    PutObjectCommand,
-    GetObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { v2 as cloudinary } from "cloudinary";
 import { config } from "./config.js";
 
-const s3 = new S3Client({
-    endpoint: config.S3_ENDPOINT,
-    region: config.S3_REGION,
-    credentials: {
-        accessKeyId: config.S3_ACCESS_KEY_ID,
-        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-    },
-    forcePathStyle: true,
+cloudinary.config({
+    cloud_name: config.CLOUD_NAME,
+    api_key: config.CLOUD_API_KEY,
+    api_secret: config.CLOUD_SECRET_KEY,
+    secure: true,
 });
 
-export async function getPresignedUploadUrl(key: string, contentType: string, expiresIn = 300) {
-    const command = new PutObjectCommand({
-        Bucket: config.S3_BUCKET,
-        Key: key,
-        ContentType: contentType,
-    });
-    return getSignedUrl(s3, command, { expiresIn });
+export function getSignedUploadParams(key: string) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const type = "authenticated";
+    const allowedFormats = "pdf";
+    const signature = cloudinary.utils.api_sign_request(
+        { allowed_formats: allowedFormats, public_id: key, timestamp, type },
+        config.CLOUD_SECRET_KEY
+    );
+
+    return {
+        uploadUrl: `https://api.cloudinary.com/v1_1/${config.CLOUD_NAME}/raw/upload`,
+        key,
+        timestamp,
+        signature,
+        apiKey: config.CLOUD_API_KEY,
+        type,
+        allowedFormats,
+    };
 }
 
 export async function downloadObject(key: string): Promise<Buffer> {
-    const command = new GetObjectCommand({
-        Bucket: config.S3_BUCKET,
-        Key: key,
+    const downloadUrl = cloudinary.utils.private_download_url(key, "", {
+        resource_type: "raw",
+        type: "authenticated",
+        expires_at: Math.floor(Date.now() / 1000) + 300,
     });
 
-    const response = await s3.send(command);
-    if (!response.Body) {
-        throw new Error("Downloaded object has no content");
+    const response = await fetch(downloadUrl);
+    if (!response.ok) {
+        throw new Error(`Failed to download résumé: ${response.status}`);
     }
 
-    const bytes = await response.Body.transformToByteArray();
-    return Buffer.from(bytes);
+    return Buffer.from(await response.arrayBuffer());
 }

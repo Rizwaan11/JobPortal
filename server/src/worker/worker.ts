@@ -63,8 +63,8 @@ const worker = new Worker(
       }
 
       case "process-resume": {
-        const { resumeId, s3Key } = job.data;
-        await processResume(resumeId, s3Key);
+        const { resumeId, storageKey } = job.data;
+        await processResume(resumeId, storageKey);
         break;
       }
 

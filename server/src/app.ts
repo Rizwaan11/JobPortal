@@ -28,14 +28,13 @@ app.disable('x-powered-by');
 app.use(requestIdMiddleware);
 app.use(httpLogger);
 app.use(helmet());
+app.use(healthRouter);
 app.use(cors({
   origin: config.FRONTEND_URL,
   credentials: true,
 }));
 app.use(globalLimiter);
 app.use(express.json());
-
-app.use(healthRouter);
 
 app.use('/api/auth', authRouter);
 app.use('/api/applicants', applicantsRouter);

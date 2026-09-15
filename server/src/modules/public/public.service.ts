@@ -2,6 +2,7 @@ import { listPublicJobs, getPublicJobById } from "./public.repo.js";
 import { encodeCursor } from "../jobs/jobs.repo.js";
 import { redis } from "../../shared/redis.js";
 import { config } from "../../shared/config.js";
+import { logger } from "../../shared/logger.js";
 
 import type { PublicJobsQueryInput } from "./public.schema.js";
 import { DEFAULT_PUBLIC_JOBS_LIMIT } from "./public.schema.js";
@@ -12,9 +13,13 @@ export async function getPublicJobs(input: PublicJobsQueryInput) {
     const isCacheable = !input.cursor && !input.q && input.limit === DEFAULT_PUBLIC_JOBS_LIMIT;
 
     if (isCacheable) {
-        const cached = await redis.get(PUBLIC_BOARD_CACHE_KEY);
-        if (cached) {
-            return JSON.parse(cached);
+        try {
+            const cached = await redis.get(PUBLIC_BOARD_CACHE_KEY);
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (err) {
+            logger.warn({ err }, 'Failed to read public board cache');
         }
     }
 
@@ -35,7 +40,11 @@ export async function getPublicJobs(input: PublicJobsQueryInput) {
     const result = { jobs: items, nextCursor };
 
     if (isCacheable) {
-        await redis.set(PUBLIC_BOARD_CACHE_KEY, JSON.stringify(result), { EX: config.CACHE_TTL_SECONDS });
+        try {
+            await redis.set(PUBLIC_BOARD_CACHE_KEY, JSON.stringify(result), { EX: config.CACHE_TTL_SECONDS });
+        } catch (err) {
+            logger.warn({ err }, 'Failed to write public board cache');
+        }
     }
 
     return result;

@@ -56,7 +56,7 @@ export const buildApplicantSnapshot = async (applicantId: string): Promise<Appli
         skills: applicant.attributes.skills,
         portfolioLinks: applicant.attributes.portfolioLinks,
         yearsOfExperience: applicant.attributes.yearsOfExperience ?? null,
-        resumeKey: latestResume?.s3Key ?? null
+        resumeKey: latestResume?.storageKey ?? null
     };
 }
 
