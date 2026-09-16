@@ -11,6 +11,8 @@ redis.on("error", (error) => {
 });
 
 export const connectRedis = async () => {
+  if (redis.isOpen) return;
+
   await redis.connect();
 
   logger.info("Redis connected");

@@ -28,6 +28,14 @@ app.disable('x-powered-by');
 app.use(requestIdMiddleware);
 app.use(httpLogger);
 app.use(helmet());
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'Job Portal API',
+    status: 'running',
+    health: '/health',
+    readiness: '/ready',
+  });
+});
 app.use(healthRouter);
 app.use(cors({
   origin: config.FRONTEND_URL,

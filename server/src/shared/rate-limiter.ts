@@ -1,7 +1,9 @@
 import { rateLimit } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { config } from "./config.js";
-import { redis } from "./redis.js";
+import { connectRedis, redis } from "./redis.js";
+
+await connectRedis();
 
 const rateLimitMessage = {
   error: {
