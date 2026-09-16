@@ -11,17 +11,9 @@ const EnvSchema = z.object({
 
   PORT: z.coerce.number().int().positive().default(3000),
 
-  MONGO_URI: z.string().min(1).refine(
-  (value) =>
-    value.startsWith("mongodb://") ||
-    value.startsWith("mongodb+srv://"),
-  "Invalid MongoDB URI"
-),
+  MONGO_URI: z.string().min(1),
 
-  REDIS_URL: z.string().min(1).refine(
-    (value) => value.startsWith("redis://") || value.startsWith("rediss://"),
-    "Invalid Redis URL"
-  ),
+  REDIS_URL: z.string().min(1),
 
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('15m'),
