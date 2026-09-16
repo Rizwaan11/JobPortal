@@ -1,7 +1,5 @@
-import { apiFetch } from '@/lib/api';
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  const health = await apiFetch('/health');
-  console.log(health);
-  return <div>Check your terminal</div>;
+export default function Home() {
+  redirect("/jobs");
 }
