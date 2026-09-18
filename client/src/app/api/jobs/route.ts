@@ -1,20 +1,23 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextResponse } from "next/server";
+import { apiFetch, ApiError } from "@/lib/api";
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (body === null) {
+    return NextResponse.json({ error: { message: "Invalid request body" } }, { status: 400 });
+  }
 
-  const res = await fetch(`${process.env.API_URL}/api/jobs`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: accessToken ? `Bearer ${accessToken}` : '',
-    },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  return NextResponse.json(data, { status: res.status });
+  try {
+    const data = await apiFetch("/api/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return NextResponse.json(data, { status: 201 });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.json({ error: { message: error.message } }, { status: error.status });
+    }
+    return NextResponse.json({ error: { message: "Request failed" } }, { status: 502 });
+  }
 }

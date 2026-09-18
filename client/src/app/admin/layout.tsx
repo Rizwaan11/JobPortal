@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AdminNav from './admin-nav';
+import { apiUrl } from '@/lib/server-config';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -8,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!token) redirect('/login');
 
-  const response = await fetch(`${process.env.API_URL}/api/auth/me`, {
+  const response = await fetch(`${apiUrl}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });

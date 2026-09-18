@@ -69,9 +69,11 @@ export async function inviteMember(userId: string, input: InviteMemberInput) {
   }
 
   const rawToken = await createInvitation(company.companyId.toString(), input);
-  const link = `${config.APP_BASE_URL}/auth/accept-invitation?token=${rawToken}`;
+  const inviteUrl = new URL('/auth/accept-invitation', config.APP_BASE_URL);
+  inviteUrl.searchParams.set('token', rawToken);
+  inviteUrl.searchParams.set('email', input.email);
 
-  await sendInvitationEmail(input.email, link);
+  await sendInvitationEmail(input.email, inviteUrl.toString());
 }
 
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchProtected } from '@/lib/fetch-protected';
 
 type Existing = {
   fullName: string;
@@ -28,7 +29,7 @@ export default function ProfileForm({ existing }: { existing: Existing }) {
       ? { fullName, headline, location, attributes: { skills } }
       : { fullName, headline, location, attributes: { skills, portfolioLinks: [] } };
 
-    const res = await fetch('/api/applicants/profile', {
+    const res = await fetchProtected('/api/applicants/profile', {
       method: existing ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

@@ -1,10 +1,21 @@
 import { cookies } from "next/headers";
+import { apiUrl } from "@/lib/server-config";
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(`${status}: ${message}`);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 export async function apiFetch(path: string, options: RequestInit = {}) {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
 
-  const response = await fetch(`${process.env.API_URL}${path}`, {
+  const response = await fetch(`${apiUrl}${path}`, {
     ...options,
     headers: {
       ...options.headers,
@@ -14,7 +25,9 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
-    throw new Error("API request failed");
+    const body = await response.json().catch(() => null);
+    const message = body?.error?.message || "API request failed";
+    throw new ApiError(response.status, message);
   }
 
   return response.json();

@@ -1,3 +1,5 @@
+import { apiUrl } from "@/lib/server-config";
+
 export type PublicJobSummary = {
   _id: string;
   title: string;
@@ -23,14 +25,6 @@ export type PublicJobsPage = {
   nextCursor: string | null;
 };
 
-function apiBaseUrl() {
-  if (!process.env.API_URL) {
-    throw new Error("API_URL is not configured");
-  }
-
-  return process.env.API_URL.replace(/\/$/, "");
-}
-
 export async function getPublicJobs({
   q,
   cursor,
@@ -43,7 +37,7 @@ export async function getPublicJobs({
   if (cursor) query.set("cursor", cursor);
 
   const suffix = query.size ? `?${query.toString()}` : "";
-  const response = await fetch(`${apiBaseUrl()}/api/public/jobs${suffix}`, {
+  const response = await fetch(`${apiUrl}/api/public/jobs${suffix}`, {
     cache: "no-store",
   });
 
@@ -56,7 +50,7 @@ export async function getPublicJobs({
 
 export async function getPublicJob(id: string): Promise<PublicJob | null> {
   const response = await fetch(
-    `${apiBaseUrl()}/api/public/jobs/${encodeURIComponent(id)}`,
+    `${apiUrl}/api/public/jobs/${encodeURIComponent(id)}`,
     { cache: "no-store" },
   );
 

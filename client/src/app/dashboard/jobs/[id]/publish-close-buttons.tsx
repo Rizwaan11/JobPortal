@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchProtected } from '@/lib/fetch-protected';
 
 export default function PublishCloseButtons({ jobId, status }: { jobId: string; status: string }) {
   const router = useRouter();
@@ -9,7 +10,7 @@ export default function PublishCloseButtons({ jobId, status }: { jobId: string; 
 
   async function handlePublish() {
     setError('');
-    const res = await fetch(`/api/jobs/${jobId}/publish`, { method: 'POST' });
+    const res = await fetchProtected(`/api/jobs/${jobId}/publish`, { method: 'POST' });
     if (!res.ok) {
       setError('Failed to publish job');
       return;
@@ -19,7 +20,7 @@ export default function PublishCloseButtons({ jobId, status }: { jobId: string; 
 
   async function handleClose() {
     setError('');
-    const res = await fetch(`/api/jobs/${jobId}/close`, { method: 'POST' });
+    const res = await fetchProtected(`/api/jobs/${jobId}/close`, { method: 'POST' });
     if (!res.ok) {
       setError('Failed to close job');
       return;

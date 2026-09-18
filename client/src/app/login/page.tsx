@@ -1,44 +1,78 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AuthPanel } from "@/components/auth-panel";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+type LoginResponse = {
+  role?: "applicant" | "recruiter" | "admin";
+  error?: { message?: string };
+};
 
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState('');
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError('');
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email');
-    const password = formData.get('password');
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = (await response.json().catch(() => ({}))) as LoginResponse;
 
-    if (!res.ok) {
-      setError('Invalid email or password.');
-      return;
+      if (!response.ok) {
+        setError(data.error?.message ?? "Could not sign in. Please try again.");
+        return;
+      }
+
+      if (!data.role) {
+        setError("Could not sign in. Please try again.");
+        return;
+      }
+
+      router.replace(data.role === "applicant" ? "/portal" : data.role === "admin" ? "/admin" : "/dashboard");
+    } catch {
+      setError("Could not connect. Please try again.");
+    } finally {
+      setPending(false);
     }
-
-    const data = await res.json();
-    router.push(data.role === 'applicant' ? '/portal' : data.role === 'admin' ? '/admin' : '/dashboard');
   }
 
   return (
-    <div className="p-6 max-w-sm mx-auto">
-      <h1 className="text-xl font-semibold mb-4">Log in</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input name="email" type="email" placeholder="Email" className="border p-2 rounded" />
-        <input name="password" type="password" placeholder="Password" className="border p-2 rounded" />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <button type="submit" className="bg-black text-white p-2 rounded">Log in</button>
+    <AuthPanel title="Sign in" description="Access your applications or hiring workspace.">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-busy={pending}>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" name="email" type="email" autoComplete="email" required />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" name="password" type="password" autoComplete="current-password" required />
+        </div>
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" size="lg" className="w-full" disabled={pending}>
+          {pending ? "Signing in…" : "Sign in"}
+        </Button>
       </form>
-    </div>
+      <div className="mt-5 flex flex-wrap justify-between gap-2 text-sm">
+        <Link href="/register" className="font-medium text-primary hover:underline">Create an account</Link>
+        <Link href="/verify-email" className="text-muted-foreground hover:text-foreground hover:underline">Verify email</Link>
+      </div>
+    </AuthPanel>
   );
 }

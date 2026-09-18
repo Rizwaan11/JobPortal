@@ -1,24 +1,31 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextResponse } from "next/server";
+import { apiFetch, ApiError } from "@/lib/api";
 
-async function forward(method: 'POST' | 'PATCH', body: unknown) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
+async function forwardProfile(method: "POST" | "PATCH", request: Request) {
+  const body = await request.json().catch(() => null);
+  if (body === null) {
+    return NextResponse.json({ error: { message: "Invalid request body" } }, { status: 400 });
+  }
 
-  const res = await fetch(`${process.env.API_URL}/api/applicants/profile`, {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: accessToken ? `Bearer ${accessToken}` : '' },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  return NextResponse.json(data, { status: res.status });
+  try {
+    const data = await apiFetch("/api/applicants/profile", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return NextResponse.json(data);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.json({ error: { message: error.message } }, { status: error.status });
+    }
+    return NextResponse.json({ error: { message: "Request failed" } }, { status: 502 });
+  }
 }
 
 export async function POST(request: Request) {
-  return forward('POST', await request.json());
+  return forwardProfile("POST", request);
 }
 
 export async function PATCH(request: Request) {
-  return forward('PATCH', await request.json());
+  return forwardProfile("PATCH", request);
 }

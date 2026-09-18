@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(`${apiUrl}/api/auth/login`, {
+    const response = await fetch(`${apiUrl}/api/auth/accept-invitation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -20,12 +20,12 @@ export async function POST(request: Request) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) return NextResponse.json(data, { status: response.status });
-    if (!data.accessToken || !data.refreshToken || !data.role) {
-      return NextResponse.json({ error: { message: "Invalid login response" } }, { status: 502 });
+    if (!data.accessToken || !data.refreshToken) {
+      return NextResponse.json({ error: { message: "Invalid invitation response" } }, { status: 502 });
     }
 
     await setAuthCookies(data);
-    return NextResponse.json({ role: data.role });
+    return NextResponse.json({ message: "Invitation accepted" });
   } catch {
     return NextResponse.json({ error: { message: "Authentication is unavailable" } }, { status: 502 });
   }

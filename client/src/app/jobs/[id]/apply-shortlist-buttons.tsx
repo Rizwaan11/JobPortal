@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { fetchProtected } from "@/lib/fetch-protected";
 
 type Action = "apply" | "shortlist";
 
@@ -17,7 +18,7 @@ export default function ApplyShortlistButtons({ jobId }: { jobId: string }) {
     setNeedsLogin(false);
 
     try {
-      const response = await fetch(`/api/applicants/${action === "apply" ? "apply" : "shortlist"}`, {
+      const response = await fetchProtected(`/api/applicants/${action === "apply" ? "apply" : "shortlist"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(action === "apply" ? { jobIds: [jobId] } : { jobId }),

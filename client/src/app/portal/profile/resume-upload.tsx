@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { fetchProtected } from '@/lib/fetch-protected';
 
 export default function ResumeUpload() {
   const [uploading, setUploading] = useState(false);
@@ -14,7 +15,7 @@ export default function ResumeUpload() {
     setMessage('');
 
     try {
-      const uploadDetailsResponse = await fetch('/api/applicants/profile/resume-upload', { method: 'POST' });
+      const uploadDetailsResponse = await fetchProtected('/api/applicants/profile/resume-upload', { method: 'POST' });
       if (!uploadDetailsResponse.ok) throw new Error('Could not prepare upload');
 
       const { uploadUrl, key, timestamp, signature, apiKey, type, allowedFormats } = await uploadDetailsResponse.json();
@@ -31,7 +32,7 @@ export default function ResumeUpload() {
       const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: uploadBody });
       if (!uploadResponse.ok) throw new Error('Cloud upload failed');
 
-      const confirmResponse = await fetch('/api/applicants/profile/resume', {
+      const confirmResponse = await fetchProtected('/api/applicants/profile/resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key, filename: file.name }),

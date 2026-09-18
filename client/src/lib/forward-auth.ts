@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { setAuthCookies } from "@/lib/auth-cookies";
 import { apiUrl } from "@/lib/server-config";
 
-export async function POST(request: Request) {
+export async function forwardAuth(request: Request, endpoint: string) {
   let body: unknown;
   try {
     body = await request.json();
@@ -11,21 +10,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(`${apiUrl}/api/auth/login`, {
+    const response = await fetch(`${apiUrl}/api/auth/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       cache: "no-store",
     });
     const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) return NextResponse.json(data, { status: response.status });
-    if (!data.accessToken || !data.refreshToken || !data.role) {
-      return NextResponse.json({ error: { message: "Invalid login response" } }, { status: 502 });
-    }
-
-    await setAuthCookies(data);
-    return NextResponse.json({ role: data.role });
+    return NextResponse.json(data, { status: response.status });
   } catch {
     return NextResponse.json({ error: { message: "Authentication is unavailable" } }, { status: 502 });
   }

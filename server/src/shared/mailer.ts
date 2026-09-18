@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendVerificationEmail(to: string, otp: string): Promise<void> {
+  const verifyUrl = new URL('/verify-email', config.APP_BASE_URL);
+  verifyUrl.searchParams.set('email', to);
+
   await transporter.sendMail({
     from: config.SMTP_FROM,
     to,
@@ -23,7 +26,8 @@ export async function sendVerificationEmail(to: string, otp: string): Promise<vo
       '',
       `    ${otp}`,
       '',
-      'Enter this code in the app to activate your account.',
+      'Enter this code here to activate your account:',
+      verifyUrl.toString(),
       `The code expires in ${config.OTP_EXPIRES_IN_MINUTES} minutes.`,
       '',
       'If you did not create an account, you can ignore this email.',

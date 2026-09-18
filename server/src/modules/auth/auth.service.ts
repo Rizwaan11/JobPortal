@@ -18,7 +18,7 @@ import {
   findInvitationByToken,
   deleteInvitation,
 } from './auth.repo.js';
-import { createRecruiter } from '../companies/companies.repo.js';
+import { createRecruiter, getRecruiterCompany } from '../companies/companies.repo.js';
 import type { RegisterInput, LoginInput, AcceptInvitationInput } from './auth.schema.js';
 import { signAccessToken } from '../../shared/token.js';
 
@@ -190,6 +190,14 @@ export async function acceptInvitation(input: AcceptInvitationInput): Promise<{ 
 
   if (user.status !== 'active') {
     throw new ForbiddenError('Your account is not active.');
+  }
+
+  if (user.role !== 'recruiter') {
+    throw new ForbiddenError('A recruiter account is required to accept this invitation.');
+  }
+
+  if (await getRecruiterCompany(user._id.toString())) {
+    throw new ConflictError('This account already belongs to a company.');
   }
 
   await createRecruiter(user._id.toString(), invitation.companyId.toString(), invitation.role);

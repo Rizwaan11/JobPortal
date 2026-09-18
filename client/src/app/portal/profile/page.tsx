@@ -1,12 +1,13 @@
 import { cookies } from 'next/headers';
 import ProfileForm from './profile-form';
 import ResumeUpload from './resume-upload';
+import { apiUrl } from '@/lib/server-config';
 
 async function fetchProfile() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('access_token')?.value;
 
-  const res = await fetch(`${process.env.API_URL}/api/applicants/profile`, {
+  const res = await fetch(`${apiUrl}/api/applicants/profile`, {
     headers: { Authorization: accessToken ? `Bearer ${accessToken}` : '' },
     cache: 'no-store',
   });

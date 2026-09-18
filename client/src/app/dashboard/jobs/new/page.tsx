@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchProtected } from '@/lib/fetch-protected';
 
 export default function NewJobPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function NewJobPage() {
     e.preventDefault();
     setError('');
 
-    const res = await fetch('/api/jobs', {
+    const res = await fetchProtected('/api/jobs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, description, deadline: deadline || undefined }),
