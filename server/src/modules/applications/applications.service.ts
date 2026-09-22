@@ -4,6 +4,7 @@ import { findApplicantByUserId } from "../applicants/applicants.repo.js";
 import { getRecruiterCompany } from "../companies/companies.repo.js";
 import { assertCompanyRole } from "../companies/companies.service.js";
 import { queue } from "../../shared/queue.js";
+import { getPrivateDownloadUrl } from "../../shared/storage.js";
 import type { ApplyToJobsInput, ScheduleInterviewInput, RecordFeedbackInput } from "./application.schema.js";
 import {
     getOpenJobs,
@@ -238,4 +239,24 @@ export const getCompanyPipeline = async (userId: string) => {
     }
 
     return pipeline;
+}
+
+export const getApplicationResumeUrl = async (userId: string, applicationId: string) => {
+    const company = await getRecruiterCompany(userId);
+    if (!company) {
+        throw new ForbiddenError('No company workspace found.');
+    }
+    assertCompanyRole(company.companyRole, ['owner', 'hr_manager', 'recruiter', 'hiring_manager']);
+
+    const application = await findApplicationForCompany(
+        applicationId,
+        company.companyId.toString()
+    );
+    const resumeKey = application.snapshot?.resumeKey;
+
+    if (!resumeKey) {
+        throw new NotFoundError('Resume not found');
+    }
+
+    return { url: getPrivateDownloadUrl(resumeKey) };
 }

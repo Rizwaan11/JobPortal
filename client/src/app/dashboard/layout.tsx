@@ -1,22 +1,18 @@
-'use client';
+import Link from "next/link";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { LogoutButton } from "@/components/logout-button";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-  }
-
   return (
     <div>
-      <nav className="flex gap-4 p-4 border-b items-center">
+      <nav className="flex items-center gap-4 border-b p-4">
+        <Link href="/dashboard/company">Company</Link>
         <Link href="/dashboard/jobs">Jobs</Link>
+        <Link href="/dashboard/applications">Applications</Link>
         <Link href="/dashboard/members">Members</Link>
-        <button onClick={handleLogout} className="ml-auto">Logout</button>
+        <div className="ml-auto">
+          <LogoutButton />
+        </div>
       </nav>
       <main className="p-4">{children}</main>
     </div>

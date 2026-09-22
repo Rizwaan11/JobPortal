@@ -28,12 +28,16 @@ export function getSignedUploadParams(key: string) {
     };
 }
 
-export async function downloadObject(key: string): Promise<Buffer> {
-    const downloadUrl = cloudinary.utils.private_download_url(key, "", {
+export function getPrivateDownloadUrl(key: string) {
+    return cloudinary.utils.private_download_url(key, "", {
         resource_type: "raw",
         type: "authenticated",
         expires_at: Math.floor(Date.now() / 1000) + 300,
     });
+}
+
+export async function downloadObject(key: string): Promise<Buffer> {
+    const downloadUrl = getPrivateDownloadUrl(key);
 
     const response = await fetch(downloadUrl);
     if (!response.ok) {

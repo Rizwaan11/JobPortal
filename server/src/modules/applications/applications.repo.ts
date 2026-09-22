@@ -167,8 +167,23 @@ export const findApplicationsForCompany = async (companyId: string) => {
                 stage: 1,
                 status: 1,
                 createdAt: 1,
-                headline: '$snapshot.headline',
                 jobTitle: '$job.title',
+                screeningQuestions: '$job.screeningQuestions',
+                answers: 1,
+                applicant: {
+                    fullName: '$snapshot.fullName',
+                    headline: '$snapshot.headline',
+                    location: '$snapshot.location',
+                    skills: '$snapshot.skills',
+                    portfolioLinks: '$snapshot.portfolioLinks',
+                    yearsOfExperience: '$snapshot.yearsOfExperience',
+                    hasResume: {
+                        $ne: [
+                            { $ifNull: ['$snapshot.resumeKey', null] },
+                            null
+                        ]
+                    }
+                },
                 latestInterview: {
                     $ifNull: [{ $arrayElemAt: ['$latestInterview', 0] }, null]
                 }

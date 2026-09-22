@@ -3,11 +3,16 @@ import { authMiddleware } from "../../shared/auth-middleware.js";
 import { requireRole } from "../../shared/require-role.js";
 import { validateBody } from "../../shared/validate.js";
 import { scheduleInterviewSchema, recordFeedbackSchema } from "./application.schema.js";
-import { moveApplicationStage, scheduleInterview, recordInterviewFeedback } from "./applications.service.js";
+import { getApplicationResumeUrl, moveApplicationStage, scheduleInterview, recordInterviewFeedback } from "./applications.service.js";
 
 export const applicationsRouter = Router();
 
 applicationsRouter.use(authMiddleware, requireRole('recruiter'))
+
+applicationsRouter.get('/:id/resume', async (req, res) => {
+    const result = await getApplicationResumeUrl(req.user!.userId, req.params.id);
+    res.json(result);
+})
 
 applicationsRouter.patch('/:id/stage', async (req, res) => {
     const updated = await moveApplicationStage(req.user!.userId, req.params.id, req.body.stage);
