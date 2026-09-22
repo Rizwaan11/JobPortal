@@ -28,7 +28,10 @@ export async function getMyCompany(userId: string) {
     throw new NotFoundError('Company not found');
   }
 
-  return company;
+  return {
+    ...company.toObject(),
+    companyRole: recruiter.companyRole,
+  };
 }
 
 export async function openWorkspace(userId: string, input: CompanyInput) {
@@ -129,6 +132,9 @@ export async function deleteMember(userId:string, recruiterId:string){
     throw new NotFoundError('Member not found.');
   }
 
+  if (member.companyRole === 'owner') {
+    throw new ForbiddenError('The company owner cannot be removed.');
+  }
 
   if (member.userId.toString() === userId) {
     throw new ForbiddenError('You cannot remove yourself from the company.');

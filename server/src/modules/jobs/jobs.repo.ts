@@ -3,7 +3,7 @@
 import { Job } from "./job.model.js";
 import { NotFoundError } from "../../shared/errors.js";
 
-import type { jobInput, ListCompanyJobsInput, UpdateJobInput } from "./job.schema.js";
+import type { jobInput, JobAttributes, ListCompanyJobsInput, ScreeningQuestion, UpdateJobInput } from "./job.schema.js";
 
 
 export const assertJobOwnership = async (jobId: string, companyId: string) => {
@@ -24,7 +24,7 @@ export const getJobById = async (jobId: string, companyId: string) => {
 
 
 export async function createJob(companyId:string,input:jobInput){
-    const jobData: { companyId: string; title: string; description: string; deadline?: Date; attributes?: Record<string, unknown>; screeningQuestions?: Record<string, unknown>[] } = {
+    const jobData: { companyId: string; title: string; description: string; deadline?: Date; attributes?: JobAttributes; screeningQuestions?: ScreeningQuestion[] } = {
         companyId,
         title: input.title,
         description: input.description,
@@ -96,7 +96,7 @@ export async function listJobsForCompany(companyId: string, input: ListCompanyJo
     const jobs = await Job.find(filter)
         .sort({ createdAt: -1, _id: -1 })
         .limit(input.limit + 1)
-        .select('title status createdAt');
+        .select('title status createdAt deadline attributes');
 
     return jobs;
 }

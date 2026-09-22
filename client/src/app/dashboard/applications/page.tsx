@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api";
+import { getCompanyContext } from "@/lib/company";
 import {
   applicationStages,
   type ApplicationPipeline,
@@ -11,9 +12,12 @@ function formatStage(stage: string) {
 }
 
 export default async function ApplicationsPage() {
-  const data = (await apiFetch("/api/companies/applications")) as {
-    pipeline: ApplicationPipeline;
-  };
+  const [data, company] = await Promise.all([
+    apiFetch("/api/companies/applications") as Promise<{
+      pipeline: ApplicationPipeline;
+    }>,
+    getCompanyContext(),
+  ]);
 
   const totalApplications = applicationStages.reduce(
     (total, stage) => total + data.pipeline[stage].length,
@@ -59,6 +63,7 @@ export default async function ApplicationsPage() {
                     <ApplicationCard
                       key={application._id}
                       application={application}
+                      companyRole={company.companyRole}
                     />
                   ))
                 )}

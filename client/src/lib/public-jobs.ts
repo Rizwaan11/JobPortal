@@ -1,4 +1,5 @@
 import { apiUrl } from "@/lib/server-config";
+import type { JobAttributes, ScreeningQuestion } from "@/types/jobs";
 
 export type PublicJobSummary = {
   _id: string;
@@ -15,8 +16,8 @@ export type PublicJob = {
   description: string;
   deadline?: string;
   createdAt: string;
-  attributes: Record<string, unknown>;
-  screeningQuestions: Record<string, unknown>[];
+  attributes: JobAttributes;
+  screeningQuestions: ScreeningQuestion[];
   companyName: string;
 };
 

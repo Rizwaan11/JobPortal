@@ -155,6 +155,8 @@ export const findApplicationsForCompany = async (companyId: string) => {
                             _id: 1,
                             scheduledAt: 1,
                             meetingLink: 1,
+                            notes: 1,
+                            feedback: 1,
                             outcome: 1
                         }
                     }

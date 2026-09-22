@@ -193,7 +193,7 @@ export const recordInterviewFeedback = async (userId: string, interviewId: strin
     if (!company) {
         throw new ForbiddenError('No company workspace found.');
     }
-    assertCompanyRole(company.companyRole, ['owner', 'hr_manager', 'recruiter']);
+    assertCompanyRole(company.companyRole, ['owner', 'hr_manager', 'recruiter', 'hiring_manager']);
 
     const { interview, application } = await findInterviewForCompany(interviewId, company.companyId.toString());
 

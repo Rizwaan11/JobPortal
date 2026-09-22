@@ -1,4 +1,5 @@
 import mongoose , {Schema} from "mongoose";
+import type { JobAttributes, ScreeningQuestion } from "./job.schema.js";
 
 export type IJob = {
     companyId:mongoose.Types.ObjectId,
@@ -6,8 +7,8 @@ export type IJob = {
     description:string,
     status:'draft'|'open'|'closed',
     deadline?:Date,
-    attributes:Record<string, unknown>,
-    screeningQuestions:Record<string, unknown>[],
+    attributes:JobAttributes,
+    screeningQuestions:ScreeningQuestion[],
     createdAt:Date,
     updatedAt:Date
 }

@@ -1,0 +1,64 @@
+import { NextResponse } from "next/server";
+
+import { ApiError, apiFetch } from "@/lib/api";
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const body = await request.json().catch(() => null);
+
+  if (body === null) {
+    return NextResponse.json(
+      { error: { message: "Invalid request body" } },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const result = await apiFetch(`/api/companies/members/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    return NextResponse.json(result);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: { message: error.message } },
+        { status: error.status },
+      );
+    }
+
+    return NextResponse.json(
+      { error: { message: "Could not update member" } },
+      { status: 502 },
+    );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+
+  try {
+    await apiFetch(`/api/companies/members/${id}`, { method: "DELETE" });
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: { message: error.message } },
+        { status: error.status },
+      );
+    }
+
+    return NextResponse.json(
+      { error: { message: "Could not remove member" } },
+      { status: 502 },
+    );
+  }
+}

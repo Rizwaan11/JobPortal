@@ -43,6 +43,12 @@ const company = await getRecruiterCompany(userId);
 
     await assertJobOwnership(jobId, company.companyId.toString());
     await updateJob(jobId, company.companyId.toString(), input)
+
+    try {
+        await redis.del(PUBLIC_BOARD_CACHE_KEY);
+    } catch (err) {
+        logger.warn({ err }, 'Failed to invalidate public board cache');
+    }
 }
 
 

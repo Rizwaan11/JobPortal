@@ -12,10 +12,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { fetchProtected } from "@/lib/fetch-protected";
+import type { CompanyRole } from "@/types/company-members";
 import type {
   ApplicationStage,
   RecruiterApplication,
 } from "@/types/recruiter-applications";
+
+import { InterviewActions } from "./interview-actions";
 
 const nextStage: Partial<Record<ApplicationStage, ApplicationStage>> = {
   applied: "screening",
@@ -31,8 +34,10 @@ function formatStage(stage: ApplicationStage) {
 
 export function ApplicationCard({
   application,
+  companyRole,
 }: {
   application: RecruiterApplication;
+  companyRole: CompanyRole;
 }) {
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
@@ -100,6 +105,12 @@ export function ApplicationCard({
   }
 
   const followingStage = nextStage[application.stage];
+  const hasPendingInterview =
+    application.latestInterview?.outcome === "pending";
+  const canManagePipeline =
+    companyRole === "owner" ||
+    companyRole === "hr_manager" ||
+    companyRole === "recruiter";
 
   return (
     <Card>
@@ -147,17 +158,23 @@ export function ApplicationCard({
             {application.answers.length > 0 && (
               <div className="space-y-2">
                 <p className="font-medium">Screening answers</p>
-                {application.answers.map((answer) => (
-                  <div
-                    key={answer.questionId}
-                    className="rounded-md border p-2"
-                  >
-                    <p className="text-muted-foreground">
-                      Question: {answer.questionId}
-                    </p>
-                    <p>{String(answer.answer)}</p>
-                  </div>
-                ))}
+                {application.answers.map((answer) => {
+                  const question = application.screeningQuestions.find(
+                    (item) => item.id === answer.questionId,
+                  );
+
+                  return (
+                    <div
+                      key={answer.questionId}
+                      className="rounded-md border p-2"
+                    >
+                      <p className="text-muted-foreground">
+                        {question?.question ?? answer.questionId}
+                      </p>
+                      <p>{String(answer.answer)}</p>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -175,9 +192,17 @@ export function ApplicationCard({
           </div>
         </details>
 
+        <InterviewActions
+          applicationId={application._id}
+          stage={application.stage}
+          status={application.status}
+          interview={application.latestInterview}
+          canSchedule={canManagePipeline}
+        />
+
         {application.status === "withdrawn" ? (
           <Badge variant="destructive">Withdrawn</Badge>
-        ) : (
+        ) : canManagePipeline && !hasPendingInterview ? (
           <div className="flex flex-wrap gap-2">
             {followingStage && (
               <Button
@@ -201,7 +226,7 @@ export function ApplicationCard({
                 </Button>
               )}
           </div>
-        )}
+        ) : null}
 
         {error && (
           <p role="alert" className="text-sm text-destructive">

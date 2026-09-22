@@ -1,3 +1,5 @@
+import type { ScreeningQuestion } from "@/types/jobs";
+
 export const applicationStages = [
   "applied",
   "screening",
@@ -30,12 +32,14 @@ export type RecruiterApplication = {
     yearsOfExperience: number | null;
     hasResume: boolean;
   };
-  screeningQuestions: Record<string, unknown>[];
+  screeningQuestions: ScreeningQuestion[];
   answers: ScreeningAnswer[];
   latestInterview: {
     _id: string;
     scheduledAt: string;
     meetingLink: string;
+    notes: string | null;
+    feedback: string | null;
     outcome: "pending" | "moved_forward" | "rejected";
   } | null;
 };

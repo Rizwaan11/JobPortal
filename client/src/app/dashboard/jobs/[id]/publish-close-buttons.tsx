@@ -1,48 +1,74 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { fetchProtected } from '@/lib/fetch-protected';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function PublishCloseButtons({ jobId, status }: { jobId: string; status: string }) {
+import { Button } from "@/components/ui/button";
+import { fetchProtected } from "@/lib/fetch-protected";
+import type { JobStatus } from "@/types/jobs";
+
+export default function PublishCloseButtons({
+  jobId,
+  status,
+}: {
+  jobId: string;
+  status: JobStatus;
+}) {
   const router = useRouter();
-  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  async function handlePublish() {
-    setError('');
-    const res = await fetchProtected(`/api/jobs/${jobId}/publish`, { method: 'POST' });
-    if (!res.ok) {
-      setError('Failed to publish job');
-      return;
-    }
-    router.refresh();
-  }
+  async function updateStatus(action: "publish" | "close") {
+    setSubmitting(true);
+    setError("");
 
-  async function handleClose() {
-    setError('');
-    const res = await fetchProtected(`/api/jobs/${jobId}/close`, { method: 'POST' });
-    if (!res.ok) {
-      setError('Failed to close job');
-      return;
+    try {
+      const response = await fetchProtected(`/api/jobs/${jobId}/${action}`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        setError(body?.error?.message ?? `Could not ${action} the job`);
+        return;
+      }
+
+      router.refresh();
+    } catch {
+      setError("Could not connect to the server");
+    } finally {
+      setSubmitting(false);
     }
-    router.refresh();
   }
 
   return (
-    <div>
+    <div className="space-y-2">
       <div className="flex gap-2">
-        {status !== 'open' && (
-          <button onClick={handlePublish} className="bg-black text-white px-3 py-2 rounded">
-            Publish
-          </button>
+        {status !== "open" && (
+          <Button
+            disabled={submitting}
+            onClick={() => void updateStatus("publish")}
+          >
+            {status === "closed" ? "Reopen" : "Publish"}
+          </Button>
         )}
-        {status !== 'closed' && (
-          <button onClick={handleClose} className="border px-3 py-2 rounded">
+
+        {status !== "closed" && (
+          <Button
+            variant="outline"
+            disabled={submitting}
+            onClick={() => void updateStatus("close")}
+          >
             Close
-          </button>
+          </Button>
         )}
       </div>
-      {error && <p className="text-red-600">{error}</p>}
+
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
