@@ -55,8 +55,8 @@ export default async function ShortlistPage() {
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Button asChild>
-            <Link href="/portal/profile">Create profile</Link>
+          <Button render={<Link href="/portal/profile" />} nativeButton={false}>
+            Create profile
           </Button>
         </CardFooter>
       </Card>
@@ -83,8 +83,8 @@ export default async function ShortlistPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button asChild>
-              <Link href="/jobs">Browse jobs</Link>
+            <Button render={<Link href="/jobs" />} nativeButton={false}>
+              Browse jobs
             </Button>
           </CardFooter>
         </Card>
@@ -116,8 +116,12 @@ export default async function ShortlistPage() {
                 </CardContent>
                 <CardFooter className="flex flex-wrap gap-3">
                   {canApply ? (
-                    <Button asChild size="sm">
-                      <Link href={`/jobs/${job._id}`}>View job</Link>
+                    <Button
+                      render={<Link href={`/jobs/${job._id}`} />}
+                      nativeButton={false}
+                      size="sm"
+                    >
+                      View job
                     </Button>
                   ) : null}
                   <RemoveButton jobId={job._id} />

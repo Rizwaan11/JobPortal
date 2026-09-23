@@ -122,9 +122,9 @@ export const getMemberById = async (companyId:string, recruiterId:string) =>{
     return member;
 }
 export const updateMemberRole = async (companyId:string, recruiterId:string, newRole:UpdateMemberInput) =>{
-    const member = await Recruiter.findOneAndUpdate({_id:recruiterId, companyId}, {companyRole:newRole.role}, {new:true});
+    await Recruiter.findOneAndUpdate({_id:recruiterId, companyId}, {companyRole:newRole.role}, {new:true});
 
 }
 export const removeMember = async (companyId:string, recruiterId:string) =>{
-    const member = await Recruiter.findOneAndDelete({_id:recruiterId, companyId});
+    await Recruiter.findOneAndDelete({_id:recruiterId, companyId});
 }

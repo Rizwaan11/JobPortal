@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "worker": "tsx watch --env-file=.env src/worker/worker.ts",
     "start:worker": "node dist/worker/worker.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",

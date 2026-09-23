@@ -53,3 +53,4 @@ track.html
 
 # Local demo data
 server/scripts/seed-demo.ts
+SEED_DATA_REFERENCE.md

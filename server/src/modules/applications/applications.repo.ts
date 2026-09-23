@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Application } from "./application.model.js";
-import type { ApplicationSnapshot } from "./application.model.js";
+import type { ApplicationAnswer, ApplicationSnapshot } from "./application.model.js";
 import { Interview } from "./interview.model.js";
 import { Job } from "../jobs/job.model.js";
 import { Applicant } from "../applicants/applicant.model.js";
@@ -19,7 +19,7 @@ export const insertApplication = async (
     session: ClientSession,
     applicantId: string,
     jobId: string,
-    answers: Record<string, unknown>[],
+    answers: ApplicationAnswer[],
     snapshot: ApplicationSnapshot
 ) => {
     try {

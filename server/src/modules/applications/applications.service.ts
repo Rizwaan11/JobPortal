@@ -173,8 +173,10 @@ export const scheduleInterview = async (userId: string, applicationId: string, i
 
     const interview = await createInterview(applicationId, input.scheduledAt, input.meetingLink, input.notes ?? null);
 
-    const applicant = application.applicantId as any;
-    const job = application.jobId as any;
+    const applicant = application.applicantId as unknown as {
+        userId: { email: string };
+    };
+    const job = application.jobId as unknown as { title: string };
 
     await queue.add('send-interview-notification', {
         applicantEmail: applicant.userId.email,

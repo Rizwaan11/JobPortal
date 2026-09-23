@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 
 import { ActionMessage } from "@/components/action-message";
@@ -15,12 +15,10 @@ import {
 import { renewSession } from "@/lib/fetch-protected";
 
 export function RenewSession({ returnTo }: { returnTo: string }) {
-  const [failed, setFailed] = useState(false);
-  const [renewing, setRenewing] = useState(true);
+  const [status, setStatus] = useState<"renewing" | "failed">("renewing");
 
-  const attemptRenewal = useCallback(async () => {
-    setFailed(false);
-    setRenewing(true);
+  async function retryRenewal() {
+    setStatus("renewing");
 
     try {
       const response = await renewSession();
@@ -35,17 +33,35 @@ export function RenewSession({ returnTo }: { returnTo: string }) {
         return;
       }
 
-      setFailed(true);
+      setStatus("failed");
     } catch {
-      setFailed(true);
-    } finally {
-      setRenewing(false);
+      setStatus("failed");
     }
-  }, [returnTo]);
+  }
 
   useEffect(() => {
-    void attemptRenewal();
-  }, [attemptRenewal]);
+    let cancelled = false;
+
+    void renewSession()
+      .then((response) => {
+        if (cancelled) return;
+
+        if (response.ok) {
+          window.location.replace(returnTo);
+        } else if (response.status === 401) {
+          window.location.replace("/login");
+        } else {
+          setStatus("failed");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("failed");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [returnTo]);
 
   return (
     <Card className="w-full max-w-md">
@@ -56,19 +72,19 @@ export function RenewSession({ returnTo }: { returnTo: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {renewing ? (
+        {status === "renewing" ? (
           <div role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
             <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
             Checking your session…
           </div>
         ) : null}
 
-        {failed ? (
+        {status === "failed" ? (
           <>
             <ActionMessage type="error">
               Your session could not be restored. Check your connection and try again.
             </ActionMessage>
-            <Button type="button" onClick={() => void attemptRenewal()}>
+            <Button type="button" onClick={() => void retryRenewal()}>
               Try again
             </Button>
           </>

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import type { SignOptions } from 'jsonwebtoken';
 import { config } from './config.js';
 import { UnauthorizedError } from './errors.js';
 
@@ -21,7 +22,7 @@ export interface TokenPayload {
 export function signAccessToken(payload: SignInput): string {
   
   return jwt.sign(payload, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN as any,
+    expiresIn: config.JWT_EXPIRES_IN as NonNullable<SignOptions['expiresIn']>,
   });
 }
 

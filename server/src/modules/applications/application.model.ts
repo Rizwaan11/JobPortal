@@ -10,16 +10,36 @@ export type ApplicationSnapshot = {
     resumeKey: string | null
 }
 
+export type ApplicationAnswer = {
+    questionId: string,
+    answer: string | boolean | number
+}
+
 export type IApplication = {
     jobId: mongoose.Types.ObjectId,
     applicantId: mongoose.Types.ObjectId,
     stage: 'applied' | 'screening' | 'interview' | 'final_interview' | 'offer' | 'hired' | 'rejected',
     status: 'active' | 'withdrawn',
-    answers: Record<string, unknown>[],
+    answers: ApplicationAnswer[],
     snapshot: ApplicationSnapshot,
     createdAt: Date,
     updatedAt: Date
 }
+
+const ApplicationAnswerSchema = new Schema<ApplicationAnswer>({
+    questionId: { type: String, required: true },
+    answer: { type: Schema.Types.Mixed, required: true },
+}, { _id: false });
+
+const ApplicationSnapshotSchema = new Schema<ApplicationSnapshot>({
+    fullName: { type: String, required: true },
+    headline: { type: String, default: null },
+    location: { type: String, default: null },
+    skills: { type: [String], default: [] },
+    portfolioLinks: { type: [String], default: [] },
+    yearsOfExperience: { type: Number, default: null },
+    resumeKey: { type: String, default: null },
+}, { _id: false });
 
 const ApplicationSchema = new mongoose.Schema<IApplication>({
     jobId: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
@@ -34,8 +54,8 @@ const ApplicationSchema = new mongoose.Schema<IApplication>({
         enum: ['active', 'withdrawn'],
         default: 'active'
     },
-    answers: { type: [Schema.Types.Mixed], default: [] } as any,
-    snapshot: { type: Schema.Types.Mixed, default: {} } as any,
+    answers: { type: [ApplicationAnswerSchema], default: [] },
+    snapshot: { type: ApplicationSnapshotSchema, required: true },
 }, { timestamps: true })
 
 ApplicationSchema.index({ jobId: 1, applicantId: 1 }, { unique: true })

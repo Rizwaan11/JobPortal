@@ -13,6 +13,33 @@ export type IJob = {
     updatedAt:Date
 }
 
+const JobAttributesSchema = new Schema<JobAttributes>({
+    location: { type: String },
+    employmentType: {
+        type: String,
+        enum: ['full_time', 'part_time', 'contract', 'internship'],
+    },
+    workplaceType: {
+        type: String,
+        enum: ['onsite', 'remote', 'hybrid'],
+    },
+    experienceLevel: {
+        type: String,
+        enum: ['entry', 'junior', 'mid', 'senior', 'lead'],
+    },
+}, { _id: false });
+
+const ScreeningQuestionSchema = new Schema<ScreeningQuestion>({
+    id: { type: String, required: true },
+    question: { type: String, required: true },
+    answerType: {
+        type: String,
+        enum: ['text', 'number', 'yes_no'],
+        required: true,
+    },
+    required: { type: Boolean, required: true },
+}, { _id: false });
+
 export const JobSchema = new mongoose.Schema<IJob>({
     companyId:{
         type:Schema.Types.ObjectId,
@@ -36,13 +63,13 @@ export const JobSchema = new mongoose.Schema<IJob>({
         type:Date,
     },
     attributes:{
-        type:Schema.Types.Mixed,
+        type:JobAttributesSchema,
         default:{}
     },
     screeningQuestions:{
-        type:[Schema.Types.Mixed],
+        type:[ScreeningQuestionSchema],
         default:[]
-    } as any
+    }
 },{ timestamps: true}
 )
 
