@@ -50,3 +50,6 @@ docs/
 
 
 track.html
+
+# Local demo data
+server/scripts/seed-demo.ts
