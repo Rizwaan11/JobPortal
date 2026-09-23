@@ -62,6 +62,12 @@ export const createResume = async (applicantId: string, filename: string, storag
     return resume;
 }
 
+export const findLatestResume = async (applicantId: string) => {
+    return Resume.findOne({ applicantId })
+        .sort({ uploadedAt: -1 })
+        .select('_id filename storageKey uploadedAt wordCount');
+}
+
 export const addToShortlist = async (applicantId: string, jobId: string) => {
     try {
         const item = await ShortlistItem.create({ applicantId, jobId });
@@ -97,7 +103,7 @@ export const listShortlist = async (applicantId: string) => {
     const items = await ShortlistItem.find({ applicantId })
         .populate({
             path: 'jobId',
-            select: 'title status createdAt companyId',
+            select: 'title status createdAt deadline attributes companyId',
             populate: { path: 'companyId', select: 'name' }
         })
         .sort({ createdAt: -1 });

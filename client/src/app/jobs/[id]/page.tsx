@@ -106,7 +106,10 @@ export default async function JobDetailPage({ params }: Props) {
               <CalendarDays className="size-4" aria-hidden="true" />
               {deadline ? `Deadline: ${deadline}` : "No deadline listed"}
             </div>
-            <ApplyShortlistButtons jobId={id} />
+            <ApplyShortlistButtons
+              jobId={id}
+              screeningQuestions={job.screeningQuestions}
+            />
           </CardContent>
         </Card>
       </div>

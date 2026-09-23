@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
 import { apiFetch, ApiError } from "@/lib/api";
 
+export async function GET() {
+  try {
+    const data = await apiFetch("/api/applicants/profile/resume");
+    return NextResponse.json(data);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: { message: error.message } },
+        { status: error.status },
+      );
+    }
+    return NextResponse.json(
+      { error: { message: "Could not open the resume" } },
+      { status: 502 },
+    );
+  }
+}
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   if (body === null) {

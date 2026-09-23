@@ -1,64 +1,180 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { fetchProtected } from "@/lib/fetch-protected";
+import type { ScreeningQuestion } from "@/types/jobs";
+
+type Props = {
+  jobId: string;
+  screeningQuestions: ScreeningQuestion[];
+};
 
 type Action = "apply" | "shortlist";
 
-export default function ApplyShortlistButtons({ jobId }: { jobId: string }) {
+export default function ApplyShortlistButtons({
+  jobId,
+  screeningQuestions,
+}: Props) {
   const [busy, setBusy] = useState<Action | null>(null);
   const [message, setMessage] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
 
-  async function submit(action: Action) {
-    setBusy(action);
+  async function apply(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy("apply");
     setMessage("");
     setNeedsLogin(false);
 
+    const form = new FormData(event.currentTarget);
+    const answers = screeningQuestions
+      .map((question) => {
+        const value = form.get(question.id);
+
+        if (value === null || String(value).trim() === "") {
+          return null;
+        }
+
+        let answer: string | number | boolean = String(value).trim();
+
+        if (question.answerType === "number") {
+          answer = Number(value);
+        }
+
+        if (question.answerType === "yes_no") {
+          answer = value === "true";
+        }
+
+        return {
+          questionId: question.id,
+          answer,
+        };
+      })
+      .filter(
+        (
+          answer,
+        ): answer is {
+          questionId: string;
+          answer: string | number | boolean;
+        } => answer !== null,
+      );
+
     try {
-      const response = await fetchProtected(`/api/applicants/${action === "apply" ? "apply" : "shortlist"}`, {
+      const response = await fetchProtected("/api/applicants/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "apply" ? { jobIds: [jobId] } : { jobId }),
+        body: JSON.stringify({
+          jobIds: [jobId],
+          answers: {
+            [jobId]: answers,
+          },
+        }),
       });
-      const data = (await response.json().catch(() => ({}))) as {
-        error?: { message?: string };
-        skipped?: string[];
-      };
+      const body = await response.json().catch(() => null);
 
       if (response.status === 401) {
         setNeedsLogin(true);
         setMessage("Sign in as an applicant to continue.");
       } else if (!response.ok) {
-        setMessage(data.error?.message ?? "Something went wrong. Please try again.");
-      } else if (action === "apply") {
-        setMessage(data.skipped?.includes(jobId) ? "You already applied to this job." : "Application submitted.");
+        setMessage(body?.error?.message ?? "Could not submit the application.");
+      } else if (body?.skipped?.includes(jobId)) {
+        setMessage("You have already applied to this job.");
+      } else {
+        setMessage("Application submitted.");
+      }
+    } catch {
+      setMessage("Could not connect to the server.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function saveToShortlist() {
+    setBusy("shortlist");
+    setMessage("");
+    setNeedsLogin(false);
+
+    try {
+      const response = await fetchProtected("/api/applicants/shortlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId }),
+      });
+      const body = await response.json().catch(() => null);
+
+      if (response.status === 401) {
+        setNeedsLogin(true);
+        setMessage("Sign in as an applicant to continue.");
+      } else if (!response.ok) {
+        setMessage(body?.error?.message ?? "Could not save this job.");
       } else {
         setMessage("Job saved to your shortlist.");
       }
     } catch {
-      setMessage("Could not connect. Please try again.");
+      setMessage("Could not connect to the server.");
     } finally {
       setBusy(null);
     }
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={() => void submit("apply")} disabled={busy !== null}>
+    <div className="space-y-5">
+      <form onSubmit={apply} className="space-y-4">
+        {screeningQuestions.map((question, index) => (
+          <div key={question.id} className="space-y-2">
+            <Label htmlFor={question.id}>
+              {index + 1}. {question.question}
+              {question.required ? " *" : ""}
+            </Label>
+
+            {question.answerType === "text" ? (
+              <textarea
+                id={question.id}
+                name={question.id}
+                required={question.required}
+                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm"
+              />
+            ) : question.answerType === "number" ? (
+              <Input
+                id={question.id}
+                name={question.id}
+                type="number"
+                required={question.required}
+              />
+            ) : (
+              <select
+                id={question.id}
+                name={question.id}
+                required={question.required}
+                defaultValue=""
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="">Select an answer</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            )}
+          </div>
+        ))}
+
+        <Button type="submit" disabled={busy !== null}>
           {busy === "apply" ? "Applying…" : "Apply"}
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => void submit("shortlist")}
-          disabled={busy !== null}
-        >
-          {busy === "shortlist" ? "Saving…" : "Save job"}
-        </Button>
-      </div>
+      </form>
+
+      <Button
+        type="button"
+        variant="outline"
+        disabled={busy !== null}
+        onClick={() => void saveToShortlist()}
+      >
+        {busy === "shortlist" ? "Saving…" : "Save job"}
+      </Button>
+
       {message && (
         <p role="status" className="text-sm text-muted-foreground">
           {message}{" "}

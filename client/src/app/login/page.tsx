@@ -7,9 +7,10 @@ import { AuthPanel } from "@/components/auth-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getRoleHome, type UserRole } from "@/lib/roles";
 
 type LoginResponse = {
-  role?: "applicant" | "recruiter" | "admin";
+  role?: UserRole;
   error?: { message?: string };
 };
 
@@ -45,7 +46,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace(data.role === "applicant" ? "/portal" : data.role === "admin" ? "/admin" : "/dashboard");
+      router.replace(getRoleHome(data.role));
     } catch {
       setError("Could not connect. Please try again.");
     } finally {

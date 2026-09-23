@@ -3,6 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { ActionMessage } from "@/components/action-message";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { fetchProtected } from "@/lib/fetch-protected";
 import type {
@@ -31,6 +43,7 @@ export function MemberActions({
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   const isCurrentUser = memberUserId === currentUserId;
   const isOwner = memberRole === "owner";
@@ -70,8 +83,6 @@ export function MemberActions({
   }
 
   async function removeCompanyMember() {
-    if (!window.confirm("Remove this member from the company?")) return;
-
     setSubmitting(true);
     setError("");
 
@@ -87,6 +98,7 @@ export function MemberActions({
         return;
       }
 
+      setRemoveOpen(false);
       router.refresh();
     } catch {
       setError("Could not connect to the server");
@@ -128,23 +140,60 @@ export function MemberActions({
         )}
 
         {canRemove && (
-          <Button
-            type="button"
-            size="sm"
-            variant="destructive"
-            disabled={submitting}
-            onClick={() => void removeCompanyMember()}
+          <AlertDialog
+            open={removeOpen}
+            onOpenChange={(open) => {
+              setRemoveOpen(open);
+              if (!open) setError("");
+            }}
           >
-            Remove
-          </Button>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  disabled={submitting}
+                />
+              }
+            >
+              Remove
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove member?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This person will lose access to the company workspace. You can
+                  invite them again later.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              {error ? (
+                <ActionMessage type="error">{error}</ActionMessage>
+              ) : null}
+
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={submitting}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  type="button"
+                  variant="destructive"
+                  disabled={submitting}
+                  onClick={() => void removeCompanyMember()}
+                >
+                  {submitting ? "Removing…" : "Remove member"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
 
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
+      {error && !removeOpen ? (
+        <ActionMessage type="error">{error}</ActionMessage>
+      ) : null}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { authMiddleware } from "../../shared/auth-middleware.js";
 import { requireRole } from "../../shared/require-role.js";
 import { validateBody } from "../../shared/validate.js";
 import { applicantSchema, applicantUpdateSchema, confirmResumeSchema, addShortlistSchema } from "./applicant.schema.js";
-import { createProfile, getProfile, updateProfile, getResumeUploadUrl, confirmResumeUpload, addJobToShortlist, getShortlist, removeJobFromShortlist, getMyApplications } from "./applicants.service.js";
+import { createProfile, getProfile, updateProfile, getResumeUploadUrl, confirmResumeUpload, getMyResumeUrl, addJobToShortlist, getShortlist, removeJobFromShortlist, getMyApplications } from "./applicants.service.js";
 import { applyToJobsSchema } from "../applications/application.schema.js";
 import { applyToJobs } from "../applications/applications.service.js";
 
@@ -32,6 +32,11 @@ applicantsRouter.patch('/profile', async (req, res) => {
 
 applicantsRouter.post('/profile/resume-upload', async (req, res) => {
     const result = await getResumeUploadUrl(req.user!.userId);
+    res.json(result);
+})
+
+applicantsRouter.get('/profile/resume', async (req, res) => {
+    const result = await getMyResumeUrl(req.user!.userId);
     res.json(result);
 })
 

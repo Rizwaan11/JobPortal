@@ -1,8 +1,11 @@
 import Link from "next/link";
 
 import { LogoutButton } from "@/components/logout-button";
+import { requireRole } from "@/lib/server-auth";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await requireRole("recruiter");
+
   return (
     <div>
       <nav className="flex items-center gap-4 border-b p-4">

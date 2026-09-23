@@ -1,9 +1,10 @@
 import crypto from "crypto";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../shared/errors.js";
-import { getSignedUploadParams } from "../../shared/storage.js";
+import { getPrivateDownloadUrl, getSignedUploadParams } from "../../shared/storage.js";
+import { logger } from "../../shared/logger.js";
 
 import type { ApplicantInput, ApplicantEditInput, ConfirmResumeInput, AddShortlistInput } from './applicant.schema.js'
-import { createApplicantProfile, createResume, findApplicantByUserId, updateApplicantProfile, addToShortlist, findOpenVisibleJob, listShortlist, removeFromShortlist, findApplicationsForApplicant } from "./applicants.repo.js";
+import { createApplicantProfile, createResume, findApplicantByUserId, findLatestResume, updateApplicantProfile, addToShortlist, findOpenVisibleJob, listShortlist, removeFromShortlist, findApplicationsForApplicant } from "./applicants.repo.js";
 
 import { queue } from "../../shared/queue.js";
 
@@ -27,7 +28,17 @@ export const getProfile = async (userId:string)=>{
     throw new NotFoundError('Applicant profile not found');
    }
 
-   return applicant;
+   const resume = await findLatestResume(applicant._id.toString());
+
+   return {
+    ...applicant.toObject(),
+    resume: resume ? {
+        _id: resume._id,
+        filename: resume.filename,
+        uploadedAt: resume.uploadedAt,
+        wordCount: resume.wordCount ?? null,
+    } : null,
+   };
 }
 
 
@@ -63,11 +74,30 @@ export const confirmResumeUpload = async (userId: string, input: ConfirmResumeIn
 
     const resume = await createResume(applicant._id.toString(), input.filename, input.key);
 
-    await queue.add('process-resume', {
-        resumeId: resume._id.toString(),
-        storageKey: resume.storageKey
-    });
+    try {
+        await queue.add('process-resume', {
+            resumeId: resume._id.toString(),
+            storageKey: resume.storageKey
+        });
+    } catch (err) {
+        logger.warn({ err, resumeId: resume._id.toString() }, 'Failed to queue resume analysis');
+    }
+
     return resume;
+}
+
+export const getMyResumeUrl = async (userId: string) => {
+    const applicant = await findApplicantByUserId(userId);
+    if (!applicant) {
+        throw new NotFoundError('Applicant profile not found.');
+    }
+
+    const resume = await findLatestResume(applicant._id.toString());
+    if (!resume) {
+        throw new NotFoundError('Resume not found.');
+    }
+
+    return { url: getPrivateDownloadUrl(resume.storageKey) };
 }
 
 export const addJobToShortlist = async (userId: string, input: AddShortlistInput) => {

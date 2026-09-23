@@ -1,27 +1,59 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { fetchProtected } from '@/lib/fetch-protected';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { fetchProtected } from "@/lib/fetch-protected";
 
-export default function RemoveButton({ jobId }: { jobId: string }) {
+type RemoveButtonProps = {
+  jobId: string;
+};
+
+export default function RemoveButton({ jobId }: RemoveButtonProps) {
   const router = useRouter();
-  const [error, setError] = useState('');
+  const [removing, setRemoving] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleRemove() {
-    setError('');
-    const response = await fetchProtected(`/api/applicants/shortlist/${jobId}`, { method: 'DELETE' });
-    if (!response.ok) {
-      setError('Could not remove job. Please try again.');
-      return;
+    setRemoving(true);
+    setError("");
+
+    try {
+      const response = await fetchProtected(
+        `/api/applicants/shortlist/${jobId}`,
+        { method: "DELETE" },
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        setError(body?.error?.message ?? "Could not remove this job");
+        return;
+      }
+
+      router.refresh();
+    } catch {
+      setError("Could not connect to the server");
+    } finally {
+      setRemoving(false);
     }
-    router.refresh();
   }
 
   return (
-    <div>
-      <button onClick={handleRemove} className="border px-2 py-1 rounded">Remove</button>
-      {error && <p role="alert">{error}</p>}
+    <div className="space-y-2">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={removing}
+        onClick={() => void handleRemove()}
+      >
+        {removing ? "Removing…" : "Remove"}
+      </Button>
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

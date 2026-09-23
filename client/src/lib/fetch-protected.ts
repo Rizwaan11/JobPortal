@@ -1,6 +1,6 @@
 let refreshInFlight: Promise<Response> | null = null;
 
-function renewSession() {
+export function renewSession() {
   if (!refreshInFlight) {
     refreshInFlight = fetch("/api/auth/refresh", { method: "POST" })
       .finally(() => {

@@ -1,26 +1,26 @@
-'use client';
+import { LogoutButton } from "@/components/logout-button";
+import { requireRole } from "@/lib/server-auth";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { PortalNav } from "./portal-nav";
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-  }
+export default async function PortalLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  await requireRole("applicant");
 
   return (
-    <div>
-      <nav className="flex gap-4 p-4 border-b items-center">
-        <Link href="/jobs">Jobs</Link>
-        <Link href="/portal/shortlist">Shortlist</Link>
-        <Link href="/portal/applications">Applications</Link>
-        <Link href="/portal/profile">Profile</Link>
-        <button onClick={handleLogout} className="ml-auto">Logout</button>
-      </nav>
-      <main className="p-4">{children}</main>
+    <div className="min-h-screen bg-background">
+      <header className="border-b">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+          <PortalNav />
+          <div className="ml-auto">
+            <LogoutButton />
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
     </div>
   );
 }
