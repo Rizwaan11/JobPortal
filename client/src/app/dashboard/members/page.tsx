@@ -1,25 +1,12 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiError, apiFetch } from "@/lib/api";
-import type {
-  CompanyMember,
-  CompanyRole,
-} from "@/types/company-members";
+import { formatLabel } from "@/lib/format";
+import type { CompanyMember } from "@/types/company-members";
 
 import { InviteMemberForm } from "./invite-member-form";
 import { MemberActions } from "./member-actions";
-
-function formatRole(role: CompanyRole) {
-  return role
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 async function loadMembers() {
   try {
@@ -63,21 +50,16 @@ export default async function MembersPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Company members
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Invite people and manage their company roles.
-        </p>
-      </div>
+      <PageHeader
+        title="Company members"
+        description={`${membersData.members.length} ${membersData.members.length === 1 ? "member" : "members"} · Invite people and manage their company roles.`}
+      />
 
-      <Card className="max-w-xl">
+      <Card className="max-w-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Invite member</CardTitle>
           <CardDescription>
-            The receiver must use a verified recruiter account to accept the
-            invitation.
+            The receiver must use a verified recruiter account to accept the invitation.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,14 +69,12 @@ export default async function MembersPage() {
 
       <div className="grid gap-4">
         {membersData.members.map((member) => (
-          <Card key={member._id}>
+          <Card key={member._id} size="sm" className="shadow-sm">
             <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="font-medium">{member.userId.email}</p>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
-                    {formatRole(member.companyRole)}
-                  </Badge>
+                  <Badge variant="secondary">{formatLabel(member.companyRole)}</Badge>
                   {member.userId._id === currentUserData.user.id && (
                     <span className="text-xs text-muted-foreground">You</span>
                   )}

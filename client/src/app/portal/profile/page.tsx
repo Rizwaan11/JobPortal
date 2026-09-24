@@ -1,3 +1,7 @@
+import { CheckCircle2 } from "lucide-react";
+
+import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { ApplicantProfile } from "@/types/applicant";
 
@@ -15,20 +19,56 @@ async function loadProfile(): Promise<ApplicantProfile | null> {
 
 export default async function ProfilePage() {
   const profile = await loadProfile();
+  const completedFields = profile
+    ? [
+        profile.fullName,
+        profile.headline,
+        profile.location,
+        profile.attributes.skills.length > 0,
+        profile.attributes.portfolioLinks.length > 0,
+        profile.resume,
+      ].filter(Boolean).length
+    : 0;
+  const completeness = Math.round((completedFields / 6) * 100);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Keep the information recruiters receive with your applications up to
-          date.
-        </p>
-      </div>
+    <div className="space-y-7">
+      <PageHeader
+        title="My profile"
+        description="Keep the information recruiters receive with your applications up to date."
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+      <div
+        className={
+          profile ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start" : "max-w-3xl"
+        }
+      >
         <ProfileForm existing={profile} />
-        {profile && <ResumeUpload resume={profile.resume} />}
+        {profile && (
+          <aside className="space-y-6">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
+                  Profile completeness
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width]"
+                    style={{ width: `${completeness}%` }}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {completeness}% complete. Add details that help recruiters understand your
+                  experience.
+                </p>
+              </CardContent>
+            </Card>
+            <ResumeUpload resume={profile.resume} />
+          </aside>
+        )}
       </div>
     </div>
   );

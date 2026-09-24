@@ -1,16 +1,15 @@
 import Link from "next/link";
+import { BriefcaseBusiness, CalendarDays, MapPin, Plus } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { FilterPills } from "@/components/filter-pills";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 import { canManageJobs, getCompanyContext } from "@/lib/company";
+import { formatDeadline, formatLabel } from "@/lib/format";
 import type { JobStatus, RecruiterJobSummary } from "@/types/jobs";
 
 const statuses: { label: string; value?: JobStatus }[] = [
@@ -19,14 +18,6 @@ const statuses: { label: string; value?: JobStatus }[] = [
   { label: "Open", value: "open" },
   { label: "Closed", value: "closed" },
 ];
-
-function formatDate(value?: string) {
-  if (!value) return "No deadline";
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(value));
-}
 
 export default async function JobsPage({
   searchParams,
@@ -50,74 +41,67 @@ export default async function JobsPage({
   const canManage = canManageJobs(company.companyRole);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Create roles, prepare screening questions and control publishing.
-          </p>
-        </div>
-        {canManage && (
-          <Link href="/dashboard/jobs/new" className={buttonVariants()}>
-            Create job
-          </Link>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {statuses.map((status) => {
-          const active = activeStatus === status.value;
-          const href = status.value
-            ? `/dashboard/jobs?status=${status.value}`
-            : "/dashboard/jobs";
-
-          return (
-            <Link
-              key={status.label}
-              href={href}
-              className={buttonVariants({
-                variant: active ? "default" : "outline",
-                size: "sm",
-              })}
-            >
-              {status.label}
+    <div className="space-y-7">
+      <PageHeader
+        title="Jobs"
+        description="Create roles, prepare screening questions and control publishing."
+        actions={
+          canManage ? (
+            <Link href="/dashboard/jobs/new" className={buttonVariants()}>
+              <Plus className="size-4" aria-hidden="true" />
+              Create job
             </Link>
-          );
-        })}
-      </div>
+          ) : undefined
+        }
+      />
+
+      <FilterPills
+        label="Job status"
+        items={statuses.map((status) => ({
+          href: status.value ? `/dashboard/jobs?status=${status.value}` : "/dashboard/jobs",
+          label: status.label,
+          active: activeStatus === status.value,
+        }))}
+      />
 
       {data.jobs.length === 0 ? (
-        <Card className="max-w-xl">
-          <CardHeader>
-            <CardTitle>No jobs here</CardTitle>
-            <CardDescription>
-              {canManage
-                ? "Create a job or choose another status filter."
-                : "Choose another status filter."}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <EmptyState
+          icon={BriefcaseBusiness}
+          title="No jobs here"
+          description={
+            canManage
+              ? "Create a job or choose another status filter."
+              : "Choose another status filter to find a role."
+          }
+          action={
+            canManage ? (
+              <Link href="/dashboard/jobs/new" className={buttonVariants()}>
+                Create job
+              </Link>
+            ) : undefined
+          }
+          className="max-w-2xl"
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {data.jobs.map((job) => (
-            <Card key={job._id}>
+            <Card key={job._id} className="transition-shadow hover:shadow-md">
               <CardHeader>
                 <div className="flex items-start justify-between gap-3">
                   <CardTitle className="text-lg">{job.title}</CardTitle>
-                  <Badge
-                    variant={job.status === "open" ? "default" : "secondary"}
-                  >
-                    {job.status}
+                  <Badge variant={job.status === "open" ? "default" : "secondary"}>
+                    {formatLabel(job.status)}
                   </Badge>
                 </div>
-                <CardDescription>
+                <CardDescription className="flex items-center gap-1.5">
+                  <MapPin className="size-4" aria-hidden="true" />
                   {job.attributes.location ?? "Location not specified"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
-                  {formatDate(job.deadline)}
+              <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <CalendarDays className="size-4" aria-hidden="true" />
+                  {formatDeadline(job.deadline)}
                 </p>
                 <Link
                   href={`/dashboard/jobs/${job._id}`}

@@ -2,15 +2,10 @@ import Link from "next/link";
 import { Building2, ExternalLink, Globe2 } from "lucide-react";
 
 import { ApiError, apiFetch } from "@/lib/api";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import CompanyForm from "./company-form";
 
@@ -45,8 +40,7 @@ export default async function CompanyPage() {
         <CardHeader>
           <CardTitle>Create your company workspace</CardTitle>
           <CardDescription>
-            Your company workspace is required before you can create jobs and
-            manage applicants.
+            Your company workspace is required before you can create jobs and manage applicants.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -57,15 +51,13 @@ export default async function CompanyPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Company</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          View your hiring workspace and verification status.
-        </p>
-      </div>
+    <div className="space-y-7">
+      <PageHeader
+        title="Company"
+        description="View your hiring workspace and verification status."
+      />
 
-      <Card className="max-w-2xl">
+      <Card className="max-w-3xl shadow-sm">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -73,9 +65,7 @@ export default async function CompanyPage() {
                 <Building2 className="size-5" />
                 {company.name}
               </CardTitle>
-              <CardDescription className="mt-1">
-                Workspace: {company.slug}
-              </CardDescription>
+              <CardDescription className="mt-1">Workspace: {company.slug}</CardDescription>
             </div>
 
             {company.suspended ? (
@@ -101,9 +91,7 @@ export default async function CompanyPage() {
               <ExternalLink className="size-3" />
             </a>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No company website was provided.
-            </p>
+            <p className="text-sm text-muted-foreground">No company website was provided.</p>
           )}
 
           {!company.verified && !company.suspended && (
@@ -124,14 +112,11 @@ export default async function CompanyPage() {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row">
             <Link href="/dashboard/jobs" className={buttonVariants()}>
               Manage jobs
             </Link>
-            <Link
-              href="/dashboard/members"
-              className={buttonVariants({ variant: "outline" })}
-            >
+            <Link href="/dashboard/members" className={buttonVariants({ variant: "outline" })}>
               View members
             </Link>
           </div>

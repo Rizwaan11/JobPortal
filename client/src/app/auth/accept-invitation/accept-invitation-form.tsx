@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { ActionMessage } from "@/components/action-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +23,13 @@ export default function AcceptInvitationForm({
 
   if (!token) {
     return (
-      <AuthPanel title="Invitation link needed" description="Open the invitation link from your email to join a company workspace.">
-        <Link href="/jobs" className="text-sm font-medium text-primary hover:underline">Browse jobs</Link>
+      <AuthPanel
+        title="Invitation link needed"
+        description="Open the invitation link from your email to join a company workspace."
+      >
+        <Link href="/jobs" className="text-sm font-medium text-primary hover:underline">
+          Browse jobs
+        </Link>
       </AuthPanel>
     );
   }
@@ -62,22 +68,57 @@ export default function AcceptInvitationForm({
   }
 
   return (
-    <AuthPanel title="Join the company" description="Use the email address that received this invitation. Your recruiter account must be verified first.">
+    <AuthPanel
+      title="Join the company"
+      description="Use the email address that received this invitation. Your recruiter account must be verified first."
+    >
       <form onSubmit={handleSubmit} className="space-y-4" aria-busy={pending}>
         <div className="space-y-2">
           <Label htmlFor="email">Invited email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
         </div>
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error && <ActionMessage type="error">{error}</ActionMessage>}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
           {pending ? "Joining…" : "Accept invitation"}
         </Button>
       </form>
-      <p className="mt-4 text-xs text-muted-foreground">Invitation links expire and can be used once. If yours no longer works, ask the inviter for a new one.</p>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Invitation links expire and can be used once. If yours no longer works, ask the inviter for
+        a new one.
+      </p>
       <div className="mt-5 space-y-2 text-sm">
-        <p>Need an account? <Link href={`/register?${registerQuery.toString()}`} className="font-medium text-primary hover:underline">Create a recruiter account</Link></p>
-        <p>Have an account but not verified? <Link href={`/verify-email?${verifyQuery.toString()}`} className="font-medium text-primary hover:underline">Verify your email</Link></p>
-        <p>Already joined? <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link></p>
+        <p>
+          Need an account?{" "}
+          <Link
+            href={`/register?${registerQuery.toString()}`}
+            className="font-medium text-primary hover:underline"
+          >
+            Create a recruiter account
+          </Link>
+        </p>
+        <p>
+          Have an account but not verified?{" "}
+          <Link
+            href={`/verify-email?${verifyQuery.toString()}`}
+            className="font-medium text-primary hover:underline"
+          >
+            Verify your email
+          </Link>
+        </p>
+        <p>
+          Already joined?{" "}
+          <Link href="/login" className="font-medium text-primary hover:underline">
+            Sign in
+          </Link>
+        </p>
       </div>
     </AuthPanel>
   );

@@ -5,18 +5,11 @@ import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchProtected } from "@/lib/fetch-protected";
+import { formatLabel } from "@/lib/format";
 import type { CompanyRole } from "@/types/company-members";
-import type {
-  ApplicationStage,
-  RecruiterApplication,
-} from "@/types/recruiter-applications";
+import type { ApplicationStage, RecruiterApplication } from "@/types/recruiter-applications";
 
 import { InterviewActions } from "./interview-actions";
 
@@ -27,10 +20,6 @@ const nextStage: Partial<Record<ApplicationStage, ApplicationStage>> = {
   final_interview: "offer",
   offer: "hired",
 };
-
-function formatStage(stage: ApplicationStage) {
-  return stage.replaceAll("_", " ");
-}
 
 export function ApplicationCard({
   application,
@@ -49,14 +38,11 @@ export function ApplicationCard({
     setError("");
 
     try {
-      const response = await fetchProtected(
-        `/api/applications/${application._id}/stage`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stage }),
-        },
-      );
+      const response = await fetchProtected(`/api/applications/${application._id}/stage`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage }),
+      });
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -78,9 +64,7 @@ export function ApplicationCard({
     const resumeWindow = window.open("about:blank", "_blank");
 
     try {
-      const response = await fetchProtected(
-        `/api/applications/${application._id}/resume`,
-      );
+      const response = await fetchProtected(`/api/applications/${application._id}/resume`);
       const body = await response.json().catch(() => null);
 
       if (!response.ok || !body?.url) {
@@ -105,21 +89,16 @@ export function ApplicationCard({
   }
 
   const followingStage = nextStage[application.stage];
-  const hasPendingInterview =
-    application.latestInterview?.outcome === "pending";
+  const hasPendingInterview = application.latestInterview?.outcome === "pending";
   const canManagePipeline =
-    companyRole === "owner" ||
-    companyRole === "hr_manager" ||
-    companyRole === "recruiter";
+    companyRole === "owner" || companyRole === "hr_manager" || companyRole === "recruiter";
 
   return (
-    <Card>
+    <Card className="shadow-sm transition-shadow focus-within:shadow-md hover:shadow-md">
       <CardHeader className="space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base">
-            {application.applicant.fullName}
-          </CardTitle>
-          <Badge variant="secondary">{formatStage(application.stage)}</Badge>
+          <CardTitle className="text-base">{application.applicant.fullName}</CardTitle>
+          <Badge variant="secondary">{formatLabel(application.stage)}</Badge>
         </div>
 
         <p className="text-sm text-muted-foreground">{application.jobTitle}</p>
@@ -130,19 +109,13 @@ export function ApplicationCard({
 
       <CardContent className="space-y-4">
         <details>
-          <summary className="cursor-pointer text-sm font-medium">
-            View applicant details
-          </summary>
+          <summary className="cursor-pointer text-sm font-medium">View applicant details</summary>
 
           <div className="mt-3 space-y-3 text-sm">
-            {application.applicant.location && (
-              <p>Location: {application.applicant.location}</p>
-            )}
+            {application.applicant.location && <p>Location: {application.applicant.location}</p>}
 
             {application.applicant.yearsOfExperience !== null && (
-              <p>
-                Experience: {application.applicant.yearsOfExperience} years
-              </p>
+              <p>Experience: {application.applicant.yearsOfExperience} years</p>
             )}
 
             {application.applicant.skills.length > 0 && (
@@ -164,10 +137,7 @@ export function ApplicationCard({
                   );
 
                   return (
-                    <div
-                      key={answer.questionId}
-                      className="rounded-md border p-2"
-                    >
+                    <div key={answer.questionId} className="rounded-md border p-2">
                       <p className="text-muted-foreground">
                         {question?.question ?? answer.questionId}
                       </p>
@@ -210,21 +180,20 @@ export function ApplicationCard({
                 disabled={updating}
                 onClick={() => void changeStage(followingStage)}
               >
-                Move to {formatStage(followingStage)}
+                Move to {formatLabel(followingStage)}
               </Button>
             )}
 
-            {application.stage !== "rejected" &&
-              application.stage !== "hired" && (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={updating}
-                  onClick={() => void changeStage("rejected")}
-                >
-                  Reject
-                </Button>
-              )}
+            {application.stage !== "rejected" && application.stage !== "hired" && (
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={updating}
+                onClick={() => void changeStage("rejected")}
+              >
+                Reject
+              </Button>
+            )}
           </div>
         ) : null}
 

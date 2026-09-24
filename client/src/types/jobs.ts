@@ -1,16 +1,7 @@
 export type JobStatus = "draft" | "open" | "closed";
-export type EmploymentType =
-  | "full_time"
-  | "part_time"
-  | "contract"
-  | "internship";
+export type EmploymentType = "full_time" | "part_time" | "contract" | "internship";
 export type WorkplaceType = "onsite" | "remote" | "hybrid";
-export type ExperienceLevel =
-  | "entry"
-  | "junior"
-  | "mid"
-  | "senior"
-  | "lead";
+export type ExperienceLevel = "entry" | "junior" | "mid" | "senior" | "lead";
 export type AnswerType = "text" | "number" | "yes_no";
 
 export type JobAttributes = {

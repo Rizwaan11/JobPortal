@@ -1,5 +1,15 @@
-import { apiFetch } from '@/lib/api';
-import { suspendCompany, verifyCompany } from './actions';
+import { Building2 } from "lucide-react";
+
+import { AdminActionButton } from "@/components/admin-action-button";
+import { EmptyState } from "@/components/empty-state";
+import { FilterPills } from "@/components/filter-pills";
+import { PageHeader } from "@/components/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { apiFetch } from "@/lib/api";
+import { formatDate, formatLabel } from "@/lib/format";
+
+import { suspendCompany, verifyCompany } from "./actions";
 
 type Company = {
   _id: string;
@@ -11,9 +21,9 @@ type Company = {
 };
 
 function statusLabel(c: Company) {
-  if (c.suspended) return 'suspended';
-  if (c.verified) return 'verified';
-  return 'pending';
+  if (c.suspended) return "suspended";
+  if (c.verified) return "verified";
+  return "pending";
 }
 
 export default async function CompaniesPage({
@@ -22,56 +32,103 @@ export default async function CompaniesPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status } = await searchParams;
-  const query = status ? `?status=${status}` : '';
+  const query = status ? `?status=${status}` : "";
   const data = await apiFetch(`/api/admin/companies${query}`);
   const companies: Company[] = data.companies ?? [];
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold mb-4">Companies</h1>
-      <div className="flex gap-4 mb-4">
-        <a href="/admin/companies">All</a>
-        <a href="/admin/companies?status=pending">Pending</a>
-        <a href="/admin/companies?status=verified">Verified</a>
-        <a href="/admin/companies?status=suspended">Suspended</a>
-      </div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="text-left border-b">
-            <th className="p-2">Name</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Owner</th>
-            <th className="p-2">Created</th>
-            <th className="p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {companies.map((c) => (
-            <tr key={c._id} className="border-b">
-              <td className="p-2">{c.name}</td>
-              <td className="p-2">{statusLabel(c)}</td>
-              <td className="p-2">{c.ownerEmail ?? '—'}</td>
-              <td className="p-2">{new Date(c.createdAt).toLocaleDateString()}</td>
-              <td className="p-2">
-                <div className="flex gap-2">
-                  <form action={verifyCompany}>
-                    <input type="hidden" name="id" value={c._id} />
-                    <button type="submit" disabled={c.verified} className="border px-2 py-1 rounded disabled:opacity-40">
-                      Verify
-                    </button>
-                  </form>
-                  <form action={suspendCompany}>
-                    <input type="hidden" name="id" value={c._id} />
-                    <button type="submit" disabled={c.suspended} className="border px-2 py-1 rounded disabled:opacity-40">
-                      Suspend
-                    </button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-7">
+      <PageHeader
+        title="Companies"
+        description="Review company workspaces, verification and access status."
+      />
+      <FilterPills
+        label="Company status"
+        items={[
+          { href: "/admin/companies", label: "All", active: !status },
+          ...["pending", "verified", "suspended"].map((item) => ({
+            href: `/admin/companies?status=${item}`,
+            label: formatLabel(item),
+            active: status === item,
+          })),
+        ]}
+      />
+
+      {companies.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title="No companies found"
+          description="No company workspaces match this status filter."
+        />
+      ) : (
+        <Card className="shadow-sm">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] border-collapse text-sm">
+                <thead className="bg-muted/60 text-left text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Name</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Owner</th>
+                    <th className="px-4 py-3 font-medium">Created</th>
+                    <th className="px-4 py-3 text-right font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {companies.map((company) => {
+                    const companyStatus = statusLabel(company);
+                    return (
+                      <tr key={company._id} className="hover:bg-muted/30">
+                        <td className="px-4 py-3 font-medium">{company.name}</td>
+                        <td className="px-4 py-3">
+                          <Badge
+                            variant={
+                              companyStatus === "suspended"
+                                ? "destructive"
+                                : companyStatus === "verified"
+                                  ? "default"
+                                  : "secondary"
+                            }
+                          >
+                            {formatLabel(companyStatus)}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {company.ownerEmail ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatDate(company.createdAt)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            <AdminActionButton
+                              action={verifyCompany}
+                              id={company._id}
+                              label="Verify"
+                              disabled={company.verified}
+                            />
+                            <AdminActionButton
+                              action={suspendCompany}
+                              id={company._id}
+                              label="Suspend"
+                              disabled={company.suspended}
+                              confirmation={{
+                                title: "Suspend company?",
+                                description:
+                                  "The company will lose access to active hiring features until its status changes.",
+                              }}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

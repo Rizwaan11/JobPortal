@@ -9,11 +9,7 @@ type ActionMessageProps = {
   className?: string;
 };
 
-export function ActionMessage({
-  type,
-  children,
-  className,
-}: ActionMessageProps) {
+export function ActionMessage({ type, children, className }: ActionMessageProps) {
   const success = type === "success";
   const Icon = success ? CircleCheck : CircleAlert;
 

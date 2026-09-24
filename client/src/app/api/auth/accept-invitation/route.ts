@@ -21,12 +21,18 @@ export async function POST(request: Request) {
 
     if (!response.ok) return NextResponse.json(data, { status: response.status });
     if (!data.accessToken || !data.refreshToken) {
-      return NextResponse.json({ error: { message: "Invalid invitation response" } }, { status: 502 });
+      return NextResponse.json(
+        { error: { message: "Invalid invitation response" } },
+        { status: 502 },
+      );
     }
 
     await setAuthCookies(data);
     return NextResponse.json({ message: "Invitation accepted" });
   } catch {
-    return NextResponse.json({ error: { message: "Authentication is unavailable" } }, { status: 502 });
+    return NextResponse.json(
+      { error: { message: "Authentication is unavailable" } },
+      { status: 502 },
+    );
   }
 }

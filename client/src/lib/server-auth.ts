@@ -5,11 +5,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
-import {
-  getRoleHome,
-  getSafeReturnPath,
-  type UserRole,
-} from "@/lib/roles";
+import { getRoleHome, getSafeReturnPath, type UserRole } from "@/lib/roles";
 
 type CurrentUser = {
   id: string;
@@ -47,9 +43,7 @@ export async function requireRole(requiredRole: UserRole) {
         getRoleHome(requiredRole),
       );
 
-      redirect(
-        `/auth/renew-session?returnTo=${encodeURIComponent(returnTo)}`,
-      );
+      redirect(`/auth/renew-session?returnTo=${encodeURIComponent(returnTo)}`);
     }
 
     redirect("/login");

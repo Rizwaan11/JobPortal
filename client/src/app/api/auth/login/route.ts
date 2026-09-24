@@ -27,6 +27,9 @@ export async function POST(request: Request) {
     await setAuthCookies(data);
     return NextResponse.json({ role: data.role });
   } catch {
-    return NextResponse.json({ error: { message: "Authentication is unavailable" } }, { status: 502 });
+    return NextResponse.json(
+      { error: { message: "Authentication is unavailable" } },
+      { status: 502 },
+    );
   }
 }

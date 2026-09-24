@@ -38,9 +38,7 @@ export default function CompanyForm() {
         body: JSON.stringify(body),
       });
 
-      const data = (await response
-        .json()
-        .catch(() => ({}))) as CreateCompanyResponse;
+      const data = (await response.json().catch(() => ({}))) as CreateCompanyResponse;
 
       if (!response.ok) {
         setError(data.error?.message ?? "Could not create the company.");
@@ -72,12 +70,7 @@ export default function CompanyForm() {
 
       <div className="space-y-2">
         <Label htmlFor="website">Website</Label>
-        <Input
-          id="website"
-          name="website"
-          type="url"
-          placeholder="https://example.com"
-        />
+        <Input id="website" name="website" type="url" placeholder="https://example.com" />
         <p className="text-xs text-muted-foreground">
           Optional. Include https:// at the beginning.
         </p>

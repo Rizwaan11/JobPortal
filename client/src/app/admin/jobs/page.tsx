@@ -1,10 +1,20 @@
-import { apiFetch } from '@/lib/api';
-import { closeJob } from './actions';
+import { BriefcaseBusiness } from "lucide-react";
+
+import { AdminActionButton } from "@/components/admin-action-button";
+import { EmptyState } from "@/components/empty-state";
+import { FilterPills } from "@/components/filter-pills";
+import { PageHeader } from "@/components/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { apiFetch } from "@/lib/api";
+import { formatDate, formatLabel } from "@/lib/format";
+
+import { closeJob } from "./actions";
 
 type Job = {
   _id: string;
   title: string;
-  status: 'draft' | 'open' | 'closed';
+  status: "draft" | "open" | "closed";
   createdAt: string;
   companyId: { _id: string; name: string } | null;
 };
@@ -15,48 +25,86 @@ export default async function JobsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status } = await searchParams;
-  const query = status ? `?status=${status}` : '';
+  const query = status ? `?status=${status}` : "";
   const data = await apiFetch(`/api/admin/jobs${query}`);
   const jobs: Job[] = data.jobs ?? [];
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold mb-4">Jobs</h1>
-      <div className="flex gap-4 mb-4">
-        <a href="/admin/jobs">All</a>
-        <a href="/admin/jobs?status=draft">Draft</a>
-        <a href="/admin/jobs?status=open">Open</a>
-        <a href="/admin/jobs?status=closed">Closed</a>
-      </div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="text-left border-b">
-            <th className="p-2">Title</th>
-            <th className="p-2">Company</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Created</th>
-            <th className="p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.map((j) => (
-            <tr key={j._id} className="border-b">
-              <td className="p-2">{j.title}</td>
-              <td className="p-2">{j.companyId?.name ?? '—'}</td>
-              <td className="p-2">{j.status}</td>
-              <td className="p-2">{new Date(j.createdAt).toLocaleDateString()}</td>
-              <td className="p-2">
-                <form action={closeJob}>
-                  <input type="hidden" name="id" value={j._id} />
-                  <button type="submit" disabled={j.status === 'closed'} className="border px-2 py-1 rounded disabled:opacity-40">
-                    Close
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-7">
+      <PageHeader
+        title="Jobs"
+        description="Review published roles and close listings that should no longer accept applications."
+      />
+      <FilterPills
+        label="Job status"
+        items={[
+          { href: "/admin/jobs", label: "All", active: !status },
+          ...["draft", "open", "closed"].map((item) => ({
+            href: `/admin/jobs?status=${item}`,
+            label: formatLabel(item),
+            active: status === item,
+          })),
+        ]}
+      />
+
+      {jobs.length === 0 ? (
+        <EmptyState
+          icon={BriefcaseBusiness}
+          title="No jobs found"
+          description="No job listings match this status filter."
+        />
+      ) : (
+        <Card className="shadow-sm">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] border-collapse text-sm">
+                <thead className="bg-muted/60 text-left text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Title</th>
+                    <th className="px-4 py-3 font-medium">Company</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Created</th>
+                    <th className="px-4 py-3 text-right font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {jobs.map((job) => (
+                    <tr key={job._id} className="hover:bg-muted/30">
+                      <td className="px-4 py-3 font-medium">{job.title}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {job.companyId?.name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={job.status === "open" ? "default" : "secondary"}>
+                          {formatLabel(job.status)}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(job.createdAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end">
+                          <AdminActionButton
+                            action={closeJob}
+                            id={job._id}
+                            label="Close job"
+                            disabled={job.status === "closed"}
+                            confirmation={{
+                              title: "Close this job?",
+                              description:
+                                "Applicants will no longer be able to apply. Existing applications will remain available.",
+                            }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

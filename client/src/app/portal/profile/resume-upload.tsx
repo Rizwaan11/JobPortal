@@ -5,24 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchProtected } from "@/lib/fetch-protected";
+import { formatDate } from "@/lib/format";
 import type { ResumeSummary } from "@/types/applicant";
 
-type UploadStatus =
-  | "idle"
-  | "preparing"
-  | "uploading"
-  | "confirming"
-  | "complete";
+type UploadStatus = "idle" | "preparing" | "uploading" | "confirming" | "complete";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -33,18 +23,7 @@ const statusMessage: Record<Exclude<UploadStatus, "idle">, string> = {
   complete: "Résumé uploaded. It is ready to use.",
 };
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(value));
-}
-
-export default function ResumeUpload({
-  resume,
-}: {
-  resume: ResumeSummary | null;
-}) {
+export default function ResumeUpload({ resume }: { resume: ResumeSummary | null }) {
   const router = useRouter();
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState("");
@@ -56,9 +35,7 @@ export default function ResumeUpload({
     const file = input.files?.[0];
     if (!file) return;
 
-    const isPdf =
-      file.type === "application/pdf" ||
-      file.name.toLowerCase().endsWith(".pdf");
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
     if (!isPdf) {
       setError("Select a PDF file.");
@@ -76,10 +53,9 @@ export default function ResumeUpload({
 
     try {
       setStatus("preparing");
-      const detailsResponse = await fetchProtected(
-        "/api/applicants/profile/resume-upload",
-        { method: "POST" },
-      );
+      const detailsResponse = await fetchProtected("/api/applicants/profile/resume-upload", {
+        method: "POST",
+      });
       const details = await detailsResponse.json().catch(() => null);
 
       if (!detailsResponse.ok) {
@@ -106,14 +82,11 @@ export default function ResumeUpload({
       }
 
       setStatus("confirming");
-      const confirmResponse = await fetchProtected(
-        "/api/applicants/profile/resume",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ key: details.key, filename: file.name }),
-        },
-      );
+      const confirmResponse = await fetchProtected("/api/applicants/profile/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: details.key, filename: file.name }),
+      });
       const confirmation = await confirmResponse.json().catch(() => null);
 
       if (!confirmResponse.ok) {
@@ -125,11 +98,7 @@ export default function ResumeUpload({
       router.refresh();
     } catch (uploadError) {
       setStatus("idle");
-      setError(
-        uploadError instanceof Error
-          ? uploadError.message
-          : "Upload failed. Try again.",
-      );
+      setError(uploadError instanceof Error ? uploadError.message : "Upload failed. Try again.");
     }
   }
 
@@ -164,14 +133,12 @@ export default function ResumeUpload({
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <CardTitle>Résumé</CardTitle>
-            <CardDescription className="mt-1">
-              Upload a PDF smaller than 5 MB.
-            </CardDescription>
+            <CardDescription className="mt-1">Upload a PDF smaller than 5 MB.</CardDescription>
           </div>
           {resume && <Badge>Uploaded</Badge>}
         </div>
@@ -200,12 +167,7 @@ export default function ResumeUpload({
                 {opening ? "Opening…" : "View résumé"}
               </Button>
               {resume.wordCount === null && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => router.refresh()}
-                >
+                <Button type="button" size="sm" variant="ghost" onClick={() => router.refresh()}>
                   Refresh analysis
                 </Button>
               )}
@@ -218,9 +180,7 @@ export default function ResumeUpload({
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="resume-file">
-            {resume ? "Replace résumé" : "Choose résumé"}
-          </Label>
+          <Label htmlFor="resume-file">{resume ? "Replace résumé" : "Choose résumé"}</Label>
           <Input
             id="resume-file"
             type="file"
@@ -228,9 +188,7 @@ export default function ResumeUpload({
             disabled={uploading}
             onChange={(event) => void handleUpload(event)}
           />
-          <p className="text-xs text-muted-foreground">
-            PDF only · Maximum file size 5 MB
-          </p>
+          <p className="text-xs text-muted-foreground">PDF only · Maximum file size 5 MB</p>
         </div>
 
         {status !== "idle" && (

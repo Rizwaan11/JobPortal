@@ -4,23 +4,14 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ActionMessage } from "@/components/action-message";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchProtected } from "@/lib/fetch-protected";
 import type { ApplicantProfile } from "@/types/applicant";
 
-export default function ProfileForm({
-  existing,
-}: {
-  existing: ApplicantProfile | null;
-}) {
+export default function ProfileForm({ existing }: { existing: ApplicantProfile | null }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -81,7 +72,7 @@ export default function ProfileForm({
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>{existing ? "Profile details" : "Create your profile"}</CardTitle>
         <CardDescription>
@@ -89,15 +80,10 @@ export default function ProfileForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="fullName">Full name</Label>
-            <Input
-              id="fullName"
-              name="fullName"
-              defaultValue={existing?.fullName}
-              required
-            />
+            <Input id="fullName" name="fullName" defaultValue={existing?.fullName} required />
           </div>
 
           <div className="space-y-2">
@@ -142,9 +128,7 @@ export default function ProfileForm({
               defaultValue={existing?.attributes.skills.join(", ")}
               placeholder="React, Node.js, MongoDB"
             />
-            <p className="text-xs text-muted-foreground">
-              Separate skills with commas.
-            </p>
+            <p className="text-xs text-muted-foreground">Separate skills with commas.</p>
           </div>
 
           <div className="space-y-2">
@@ -156,28 +140,14 @@ export default function ProfileForm({
               className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
               placeholder={"https://github.com/your-name\nhttps://your-portfolio.com"}
             />
-            <p className="text-xs text-muted-foreground">
-              Enter one link per line.
-            </p>
+            <p className="text-xs text-muted-foreground">Enter one link per line.</p>
           </div>
 
-          {message && (
-            <p role="status" className="text-sm text-green-700">
-              {message}
-            </p>
-          )}
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
+          {message && <ActionMessage type="success">{message}</ActionMessage>}
+          {error && <ActionMessage type="error">{error}</ActionMessage>}
 
           <Button type="submit" disabled={saving}>
-            {saving
-              ? "Saving…"
-              : existing
-                ? "Save changes"
-                : "Create profile"}
+            {saving ? "Saving…" : existing ? "Save changes" : "Create profile"}
           </Button>
         </form>
       </CardContent>

@@ -2,37 +2,25 @@ import { NextResponse } from "next/server";
 
 import { ApiError, apiFetch } from "@/lib/api";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json().catch(() => null);
 
   if (body === null) {
-    return NextResponse.json(
-      { error: { message: "Invalid request body" } },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: { message: "Invalid request body" } }, { status: 400 });
   }
 
   try {
-    const result = await apiFetch(
-      `/api/applications/interviews/${id}/feedback`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
+    const result = await apiFetch(`/api/applications/interviews/${id}/feedback`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof ApiError) {
-      return NextResponse.json(
-        { error: { message: error.message } },
-        { status: error.status },
-      );
+      return NextResponse.json({ error: { message: error.message } }, { status: error.status });
     }
 
     return NextResponse.json(

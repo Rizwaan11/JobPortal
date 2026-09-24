@@ -7,15 +7,9 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof ApiError) {
-      return NextResponse.json(
-        { error: { message: error.message } },
-        { status: error.status },
-      );
+      return NextResponse.json({ error: { message: error.message } }, { status: error.status });
     }
-    return NextResponse.json(
-      { error: { message: "Could not open the resume" } },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: { message: "Could not open the resume" } }, { status: 502 });
   }
 }
 

@@ -17,10 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { fetchProtected } from "@/lib/fetch-protected";
-import type {
-  CompanyRole,
-  EditableCompanyRole,
-} from "@/types/company-members";
+import type { CompanyRole, EditableCompanyRole } from "@/types/company-members";
 
 type Props = {
   memberId: string;
@@ -47,8 +44,7 @@ export function MemberActions({
 
   const isCurrentUser = memberUserId === currentUserId;
   const isOwner = memberRole === "owner";
-  const canChangeRole =
-    currentCompanyRole === "owner" && !isOwner && !isCurrentUser;
+  const canChangeRole = currentCompanyRole === "owner" && !isOwner && !isCurrentUser;
   const canRemove =
     (currentCompanyRole === "owner" || currentCompanyRole === "hr_manager") &&
     !isOwner &&
@@ -59,14 +55,11 @@ export function MemberActions({
     setError("");
 
     try {
-      const response = await fetchProtected(
-        `/api/companies/members/${memberId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role: selectedRole }),
-        },
-      );
+      const response = await fetchProtected(`/api/companies/members/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selectedRole }),
+      });
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -87,10 +80,9 @@ export function MemberActions({
     setError("");
 
     try {
-      const response = await fetchProtected(
-        `/api/companies/members/${memberId}`,
-        { method: "DELETE" },
-      );
+      const response = await fetchProtected(`/api/companies/members/${memberId}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -116,9 +108,7 @@ export function MemberActions({
           <>
             <select
               value={selectedRole}
-              onChange={(event) =>
-                setSelectedRole(event.target.value as EditableCompanyRole)
-              }
+              onChange={(event) => setSelectedRole(event.target.value as EditableCompanyRole)}
               className="h-9 rounded-md border bg-background px-3 text-sm"
               disabled={submitting}
             >
@@ -149,12 +139,7 @@ export function MemberActions({
           >
             <AlertDialogTrigger
               render={
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="destructive"
-                  disabled={submitting}
-                />
+                <Button type="button" size="sm" variant="destructive" disabled={submitting} />
               }
             >
               Remove
@@ -164,19 +149,15 @@ export function MemberActions({
               <AlertDialogHeader>
                 <AlertDialogTitle>Remove member?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This person will lose access to the company workspace. You can
-                  invite them again later.
+                  This person will lose access to the company workspace. You can invite them again
+                  later.
                 </AlertDialogDescription>
               </AlertDialogHeader>
 
-              {error ? (
-                <ActionMessage type="error">{error}</ActionMessage>
-              ) : null}
+              {error ? <ActionMessage type="error">{error}</ActionMessage> : null}
 
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={submitting}>
-                  Cancel
-                </AlertDialogCancel>
+                <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   type="button"
                   variant="destructive"
@@ -191,9 +172,7 @@ export function MemberActions({
         )}
       </div>
 
-      {error && !removeOpen ? (
-        <ActionMessage type="error">{error}</ActionMessage>
-      ) : null}
+      {error && !removeOpen ? <ActionMessage type="error">{error}</ActionMessage> : null}
     </div>
   );
 }

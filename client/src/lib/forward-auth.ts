@@ -19,6 +19,9 @@ export async function forwardAuth(request: Request, endpoint: string) {
     const data = await response.json().catch(() => ({}));
     return NextResponse.json(data, { status: response.status });
   } catch {
-    return NextResponse.json({ error: { message: "Authentication is unavailable" } }, { status: 502 });
+    return NextResponse.json(
+      { error: { message: "Authentication is unavailable" } },
+      { status: 502 },
+    );
   }
 }

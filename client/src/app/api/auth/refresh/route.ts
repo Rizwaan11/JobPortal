@@ -9,10 +9,7 @@ export async function POST() {
 
   if (!refreshToken) {
     cookieStore.delete("access_token");
-    return NextResponse.json(
-      { error: { message: "Please sign in again." } },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: { message: "Please sign in again." } }, { status: 401 });
   }
 
   try {
@@ -26,10 +23,7 @@ export async function POST() {
     if (response.status === 401) {
       cookieStore.delete("access_token");
       cookieStore.delete("refresh_token");
-      return NextResponse.json(
-        { error: { message: "Please sign in again." } },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: { message: "Please sign in again." } }, { status: 401 });
     }
 
     if (!response.ok) {
@@ -40,16 +34,10 @@ export async function POST() {
     }
 
     const tokens = await response.json().catch(() => null);
-    if (
-      typeof tokens?.accessToken !== "string" ||
-      typeof tokens?.refreshToken !== "string"
-    ) {
+    if (typeof tokens?.accessToken !== "string" || typeof tokens?.refreshToken !== "string") {
       cookieStore.delete("access_token");
       cookieStore.delete("refresh_token");
-      return NextResponse.json(
-        { error: { message: "Please sign in again." } },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: { message: "Please sign in again." } }, { status: 401 });
     }
 
     await setAuthCookies(tokens);

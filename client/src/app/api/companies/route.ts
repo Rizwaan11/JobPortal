@@ -6,10 +6,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
 
   if (body === null) {
-    return NextResponse.json(
-      { error: { message: "Invalid request body" } },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: { message: "Invalid request body" } }, { status: 400 });
   }
 
   try {
@@ -24,10 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json(company, { status: 201 });
   } catch (error) {
     if (error instanceof ApiError) {
-      return NextResponse.json(
-        { error: { message: error.message } },
-        { status: error.status },
-      );
+      return NextResponse.json({ error: { message: error.message } }, { status: error.status });
     }
 
     return NextResponse.json(

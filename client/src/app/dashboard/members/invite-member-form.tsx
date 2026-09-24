@@ -19,7 +19,9 @@ export function InviteMemberForm() {
 
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const email = String(form.get("email") ?? "").trim().toLowerCase();
+    const email = String(form.get("email") ?? "")
+      .trim()
+      .toLowerCase();
 
     setSubmitting(true);
     setError("");
@@ -66,9 +68,7 @@ export function InviteMemberForm() {
         <select
           id="invitation-role"
           value={role}
-          onChange={(event) =>
-            setRole(event.target.value as EditableCompanyRole)
-          }
+          onChange={(event) => setRole(event.target.value as EditableCompanyRole)}
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
         >
           <option value="hr_manager">HR manager</option>

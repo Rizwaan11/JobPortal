@@ -1,5 +1,5 @@
-import { PageLoading } from "@/components/page-loading";
+import { AdminTableLoadingSkeleton } from "@/components/page-loading";
 
 export default function AdminLoading() {
-  return <PageLoading />;
+  return <AdminTableLoadingSkeleton />;
 }

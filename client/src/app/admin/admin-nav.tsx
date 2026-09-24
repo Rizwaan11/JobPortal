@@ -1,22 +1,19 @@
-'use client';
+import { NavLink } from "@/components/nav-link";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+const links = [
+  { href: "/admin/companies", label: "Companies" },
+  { href: "/admin/jobs", label: "Jobs" },
+  { href: "/admin/users", label: "Users" },
+];
 
 export default function AdminNav() {
-  const router = useRouter();
-
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-  }
-
   return (
-    <nav className="flex gap-4 p-4 border-b items-center">
-      <Link href="/admin/companies">Companies</Link>
-      <Link href="/admin/jobs">Jobs</Link>
-      <Link href="/admin/users">Users</Link>
-      <button onClick={handleLogout} className="ml-auto">Logout</button>
+    <nav aria-label="Administration navigation" className="flex min-w-max items-center gap-1">
+      {links.map((link) => (
+        <NavLink key={link.href} href={link.href}>
+          {link.label}
+        </NavLink>
+      ))}
     </nav>
   );
 }

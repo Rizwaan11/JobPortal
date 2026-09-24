@@ -1,15 +1,12 @@
 import Link from "next/link";
+import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 import { canManageJobs, getCompanyContext } from "@/lib/company";
+import { formatDeadline, formatLabel } from "@/lib/format";
 import type { RecruiterJob } from "@/types/jobs";
 
 import PublishCloseButtons from "./publish-close-buttons";
@@ -17,12 +14,6 @@ import PublishCloseButtons from "./publish-close-buttons";
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-function formatLabel(value: string) {
-  return value
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 async function JobsPage({ params }: Props) {
   const { id } = await params;
@@ -33,13 +24,31 @@ async function JobsPage({ params }: Props) {
   const canManage = canManageJobs(company.companyRole);
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-5xl space-y-7">
+      <nav aria-label="Breadcrumb">
+        <Link
+          href="/dashboard/jobs"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Back to jobs
+        </Link>
+      </nav>
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
-          <Badge variant={job.status === "open" ? "default" : "secondary"}>
-            {job.status}
-          </Badge>
-          <h1 className="text-3xl font-semibold tracking-tight">{job.title}</h1>
+          <Badge variant={job.status === "open" ? "default" : "secondary"}>{job.status}</Badge>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{job.title}</h1>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <MapPin className="size-4" aria-hidden="true" />
+              {job.attributes.location ?? "Location not specified"}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="size-4" aria-hidden="true" />
+              {formatDeadline(job.deadline)}
+            </span>
+          </div>
         </div>
 
         {canManage && (
@@ -55,7 +64,7 @@ async function JobsPage({ params }: Props) {
         )}
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Description</CardTitle>
         </CardHeader>
@@ -66,19 +75,19 @@ async function JobsPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Work details</CardTitle>
         </CardHeader>
         <CardContent>
           <dl className="grid gap-4 sm:grid-cols-2">
-            <div>
+            <div className="rounded-lg bg-muted/60 p-3">
               <dt className="text-sm font-medium">Location</dt>
               <dd className="text-sm text-muted-foreground">
                 {job.attributes.location ?? "Not specified"}
               </dd>
             </div>
-            <div>
+            <div className="rounded-lg bg-muted/60 p-3">
               <dt className="text-sm font-medium">Employment type</dt>
               <dd className="text-sm text-muted-foreground">
                 {job.attributes.employmentType
@@ -86,7 +95,7 @@ async function JobsPage({ params }: Props) {
                   : "Not specified"}
               </dd>
             </div>
-            <div>
+            <div className="rounded-lg bg-muted/60 p-3">
               <dt className="text-sm font-medium">Workplace type</dt>
               <dd className="text-sm text-muted-foreground">
                 {job.attributes.workplaceType
@@ -94,7 +103,7 @@ async function JobsPage({ params }: Props) {
                   : "Not specified"}
               </dd>
             </div>
-            <div>
+            <div className="rounded-lg bg-muted/60 p-3">
               <dt className="text-sm font-medium">Experience level</dt>
               <dd className="text-sm text-muted-foreground">
                 {job.attributes.experienceLevel
@@ -106,19 +115,17 @@ async function JobsPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Screening questions</CardTitle>
         </CardHeader>
         <CardContent>
           {job.screeningQuestions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              This job has no screening questions.
-            </p>
+            <p className="text-sm text-muted-foreground">This job has no screening questions.</p>
           ) : (
             <ol className="space-y-3">
               {job.screeningQuestions.map((question) => (
-                <li key={question.id} className="rounded-md border p-3">
+                <li key={question.id} className="rounded-lg border bg-background p-4">
                   <p className="font-medium">{question.question}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {formatLabel(question.answerType)}

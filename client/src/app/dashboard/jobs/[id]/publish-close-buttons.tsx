@@ -45,10 +45,7 @@ export default function PublishCloseButtons({
     <div className="space-y-2">
       <div className="flex gap-2">
         {status !== "open" && (
-          <Button
-            disabled={submitting}
-            onClick={() => void updateStatus("publish")}
-          >
+          <Button disabled={submitting} onClick={() => void updateStatus("publish")}>
             {status === "closed" ? "Reopen" : "Publish"}
           </Button>
         )}

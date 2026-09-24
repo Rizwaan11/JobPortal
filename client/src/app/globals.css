@@ -123,8 +123,39 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #f7f9fc;
+    background-image: none;
   }
   html {
     @apply font-sans;
+  }
+}
+
+@keyframes nav-pending {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.nav-pending {
+  animation: nav-pending 800ms ease-in-out 120ms infinite;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-pending {
+    animation: none;
+    opacity: 0.55;
   }
 }

@@ -50,10 +50,9 @@ export async function getPublicJobs({
 }
 
 export async function getPublicJob(id: string): Promise<PublicJob | null> {
-  const response = await fetch(
-    `${apiUrl}/api/public/jobs/${encodeURIComponent(id)}`,
-    { cache: "no-store" },
-  );
+  const response = await fetch(`${apiUrl}/api/public/jobs/${encodeURIComponent(id)}`, {
+    cache: "no-store",
+  });
 
   if (response.status === 404) return null;
   if (!response.ok) throw new Error("Could not load this job");

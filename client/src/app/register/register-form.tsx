@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { ActionMessage } from "@/components/action-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,9 +26,15 @@ export default function RegisterForm({
     setError("");
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const email = String(formData.get("email") ?? "")
+      .trim()
+      .toLowerCase();
     const password = String(formData.get("password") ?? "");
-    const role = inviteToken ? "recruiter" : formData.get("role") === "recruiter" ? "recruiter" : "applicant";
+    const role = inviteToken
+      ? "recruiter"
+      : formData.get("role") === "recruiter"
+        ? "recruiter"
+        : "applicant";
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -60,16 +67,35 @@ export default function RegisterForm({
   return (
     <AuthPanel
       title="Create an account"
-      description={inviteToken ? "Use the email that received the invitation. Create a recruiter account before joining." : "Join as a job seeker or recruiter."}
+      description={
+        inviteToken
+          ? "Use the email that received the invitation. Create a recruiter account before joining."
+          : "Join as a job seeker or recruiter."
+      }
     >
       <form onSubmit={handleSubmit} className="space-y-4" aria-busy={pending}>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" defaultValue={initialEmail} autoComplete="email" required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            defaultValue={initialEmail}
+            autoComplete="email"
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} maxLength={72} required />
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            maxLength={72}
+            required
+          />
           <p className="text-xs text-muted-foreground">Use 8–72 characters.</p>
         </div>
 
@@ -79,11 +105,17 @@ export default function RegisterForm({
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">Account type</legend>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-3">
-                <input type="radio" name="role" value="applicant" defaultChecked className="accent-primary" />
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-3 transition-colors hover:bg-muted/60 has-checked:border-primary has-checked:bg-primary/5">
+                <input
+                  type="radio"
+                  name="role"
+                  value="applicant"
+                  defaultChecked
+                  className="accent-primary"
+                />
                 Job seeker
               </label>
-              <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-3">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-3 transition-colors hover:bg-muted/60 has-checked:border-primary has-checked:bg-primary/5">
                 <input type="radio" name="role" value="recruiter" className="accent-primary" />
                 Recruiter
               </label>
@@ -91,16 +123,28 @@ export default function RegisterForm({
           </fieldset>
         )}
 
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error && <ActionMessage type="error">{error}</ActionMessage>}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
           {pending ? "Creating account…" : "Create account"}
         </Button>
       </form>
       <div className="mt-5 flex flex-wrap justify-between gap-2 text-sm">
-        <Link href={inviteToken ? `/auth/accept-invitation?token=${encodeURIComponent(inviteToken)}` : "/login"} className="font-medium text-primary hover:underline">
+        <Link
+          href={
+            inviteToken
+              ? `/auth/accept-invitation?token=${encodeURIComponent(inviteToken)}`
+              : "/login"
+          }
+          className="font-medium text-primary hover:underline"
+        >
           {inviteToken ? "Already registered? Return to invitation" : "Already registered? Sign in"}
         </Link>
-        <Link href={verifyHref} className="text-muted-foreground hover:text-foreground hover:underline">Have a code? Verify email</Link>
+        <Link
+          href={verifyHref}
+          className="text-muted-foreground hover:text-foreground hover:underline"
+        >
+          Have a code? Verify email
+        </Link>
       </div>
     </AuthPanel>
   );

@@ -7,8 +7,7 @@ type Props = {
 
 export default async function RenewSessionPage({ searchParams }: Props) {
   const params = await searchParams;
-  const requestedPath =
-    typeof params.returnTo === "string" ? params.returnTo : null;
+  const requestedPath = typeof params.returnTo === "string" ? params.returnTo : null;
   const returnTo = getSafeReturnPath(requestedPath, "/");
 
   return (

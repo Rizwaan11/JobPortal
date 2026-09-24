@@ -9,7 +9,10 @@ export default function JobNotFound() {
         <p className="text-sm text-muted-foreground">
           This position may have been closed or is no longer available.
         </p>
-        <Link href="/jobs" className="inline-block text-sm font-medium underline underline-offset-4">
+        <Link
+          href="/jobs"
+          className="inline-block text-sm font-medium underline underline-offset-4"
+        >
           Browse open jobs
         </Link>
       </CardContent>

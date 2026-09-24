@@ -19,10 +19,9 @@ export default function RemoveButton({ jobId }: RemoveButtonProps) {
     setError("");
 
     try {
-      const response = await fetchProtected(
-        `/api/applicants/shortlist/${jobId}`,
-        { method: "DELETE" },
-      );
+      const response = await fetchProtected(`/api/applicants/shortlist/${jobId}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -43,7 +42,7 @@ export default function RemoveButton({ jobId }: RemoveButtonProps) {
       <Button
         type="button"
         size="sm"
-        variant="outline"
+        variant="destructive"
         disabled={removing}
         onClick={() => void handleRemove()}
       >

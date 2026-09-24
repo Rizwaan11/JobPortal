@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { canManageJobs, getCompanyContext } from "@/lib/company";
 
 import { JobForm } from "../job-form";
@@ -17,8 +12,7 @@ export default async function NewJobPage() {
         <CardHeader>
           <CardTitle>Job editing is unavailable</CardTitle>
           <CardDescription>
-            Hiring managers can review candidates but cannot create or edit
-            jobs.
+            Hiring managers can review candidates but cannot create or edit jobs.
           </CardDescription>
         </CardHeader>
       </Card>

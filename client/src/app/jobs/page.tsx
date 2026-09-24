@@ -1,15 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Building2, CalendarDays, Search, SearchX } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { formatDate } from "@/lib/format";
 import { getPublicJobs } from "@/lib/public-jobs";
 
 type Props = {
@@ -18,19 +14,6 @@ type Props = {
     cursor?: string | string[];
   }>;
 };
-
-function formatDate(value?: string) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
-}
 
 export default async function JobsPage({ searchParams }: Props) {
   const params = await searchParams;
@@ -55,7 +38,11 @@ export default async function JobsPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <form action="/jobs" method="get" className="flex max-w-2xl flex-col gap-3 sm:flex-row">
+      <form
+        action="/jobs"
+        method="get"
+        className="flex max-w-2xl flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row"
+      >
         <div className="relative flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -78,9 +65,7 @@ export default async function JobsPage({ searchParams }: Props) {
       <section aria-label="Job results" className="space-y-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">
-              {q ? `Results for “${q}”` : "Latest jobs"}
-            </h2>
+            <h2 className="text-lg font-semibold">{q ? `Results for “${q}”` : "Latest jobs"}</h2>
             <p className="text-sm text-muted-foreground">
               {jobs.length} {jobs.length === 1 ? "position" : "positions"} on this page
             </p>
@@ -93,22 +78,30 @@ export default async function JobsPage({ searchParams }: Props) {
         </div>
 
         {jobs.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center">
-              <h3 className="font-medium">No jobs found</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {q ? "Try a different keyword." : "Check back soon for new positions."}
-              </p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={SearchX}
+            title="No jobs found"
+            description={
+              q
+                ? "Try a broader keyword or clear the search to see every open role."
+                : "Check back soon for new positions."
+            }
+            action={
+              q ? (
+                <Link href="/jobs" className={buttonVariants({ variant: "outline" })}>
+                  Clear search
+                </Link>
+              ) : undefined
+            }
+          />
         ) : (
           <ul className="grid gap-4 md:grid-cols-2">
             {jobs.map((job) => {
-              const deadline = formatDate(job.deadline);
+              const deadline = formatDate(job.deadline, null);
 
               return (
                 <li key={job._id}>
-                  <Card className="h-full">
+                  <Card className="h-full transition-shadow hover:shadow-md">
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
@@ -119,7 +112,8 @@ export default async function JobsPage({ searchParams }: Props) {
                               </Link>
                             </h3>
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Building2 className="size-4" aria-hidden="true" />
                             {job.companyId?.name ?? "Company"}
                           </p>
                         </div>
@@ -127,12 +121,13 @@ export default async function JobsPage({ searchParams }: Props) {
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1">
-                      <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                      <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
                         {job.description}
                       </p>
                     </CardContent>
                     <CardFooter className="justify-between gap-3 text-sm">
-                      <span className="text-muted-foreground">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <CalendarDays className="size-4" aria-hidden="true" />
                         {deadline ? `Deadline: ${deadline}` : "No deadline listed"}
                       </span>
                       <Link
@@ -151,15 +146,12 @@ export default async function JobsPage({ searchParams }: Props) {
 
         {nextCursor && (
           <div className="flex items-center justify-center gap-4 pt-2">
-            <Link
-              href={firstPageHref}
-              className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
+            <Link href={firstPageHref} className={buttonVariants({ variant: "ghost" })}>
               First page
             </Link>
             <Link
               href={`/jobs?${nextPageParams.toString()}`}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border px-4 text-sm font-medium hover:bg-muted"
+              className={buttonVariants({ variant: "outline" })}
             >
               Next page <ArrowRight className="size-4" aria-hidden="true" />
             </Link>

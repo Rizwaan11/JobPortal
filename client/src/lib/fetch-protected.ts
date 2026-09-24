@@ -2,10 +2,9 @@ let refreshInFlight: Promise<Response> | null = null;
 
 export function renewSession() {
   if (!refreshInFlight) {
-    refreshInFlight = fetch("/api/auth/refresh", { method: "POST" })
-      .finally(() => {
-        refreshInFlight = null;
-      });
+    refreshInFlight = fetch("/api/auth/refresh", { method: "POST" }).finally(() => {
+      refreshInFlight = null;
+    });
   }
 
   return refreshInFlight;

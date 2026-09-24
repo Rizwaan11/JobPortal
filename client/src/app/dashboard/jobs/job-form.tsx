@@ -3,15 +3,11 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
+import { ActionMessage } from "@/components/action-message";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchProtected } from "@/lib/fetch-protected";
@@ -31,9 +27,7 @@ type Props = {
 
 export function JobForm({ job }: Props) {
   const router = useRouter();
-  const [questions, setQuestions] = useState<ScreeningQuestion[]>(
-    job?.screeningQuestions ?? [],
-  );
+  const [questions, setQuestions] = useState<ScreeningQuestion[]>(job?.screeningQuestions ?? []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -51,21 +45,14 @@ export function JobForm({ job }: Props) {
     ]);
   }
 
-  function updateQuestion(
-    id: string,
-    changes: Partial<ScreeningQuestion>,
-  ) {
+  function updateQuestion(id: string, changes: Partial<ScreeningQuestion>) {
     setQuestions((current) =>
-      current.map((question) =>
-        question.id === id ? { ...question, ...changes } : question,
-      ),
+      current.map((question) => (question.id === id ? { ...question, ...changes } : question)),
     );
   }
 
   function removeQuestion(id: string) {
-    setQuestions((current) =>
-      current.filter((question) => question.id !== id),
-    );
+    setQuestions((current) => current.filter((question) => question.id !== id));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -101,14 +88,11 @@ export function JobForm({ job }: Props) {
     };
 
     try {
-      const response = await fetchProtected(
-        editing ? `/api/jobs/${job?._id}` : "/api/jobs",
-        {
-          method: editing ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-      );
+      const response = await fetchProtected(editing ? `/api/jobs/${job?._id}` : "/api/jobs", {
+        method: editing ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const responseBody = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -127,22 +111,29 @@ export function JobForm({ job }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {editing ? "Edit job" : "Create a job"}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Save the role as a draft, then publish it when it is ready.
-        </p>
+    <form onSubmit={handleSubmit} className="max-w-5xl space-y-7">
+      <div className="space-y-5">
+        <Link
+          href={job ? `/dashboard/jobs/${job._id}` : "/dashboard/jobs"}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          {job ? "Back to job" : "Back to jobs"}
+        </Link>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {editing ? "Edit job" : "Create a job"}
+          </h1>
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+            Save the role as a draft, then publish it when it is ready.
+          </p>
+        </div>
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Role</CardTitle>
-          <CardDescription>
-            Describe the position and when applications close.
-          </CardDescription>
+          <CardDescription>Describe the position and when applications close.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -162,7 +153,7 @@ export function JobForm({ job }: Props) {
               id="description"
               name="description"
               defaultValue={job?.description}
-              className="min-h-48 w-full rounded-md border bg-background px-3 py-2 text-sm"
+              className="min-h-48 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               placeholder="Responsibilities, requirements and what the candidate will work on"
               required
             />
@@ -180,7 +171,7 @@ export function JobForm({ job }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Work details</CardTitle>
           <CardDescription>
@@ -204,7 +195,7 @@ export function JobForm({ job }: Props) {
               id="employmentType"
               name="employmentType"
               defaultValue={job?.attributes.employmentType ?? ""}
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <option value="">Not specified</option>
               <option value="full_time">Full time</option>
@@ -220,7 +211,7 @@ export function JobForm({ job }: Props) {
               id="workplaceType"
               name="workplaceType"
               defaultValue={job?.attributes.workplaceType ?? ""}
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <option value="">Not specified</option>
               <option value="onsite">On-site</option>
@@ -235,7 +226,7 @@ export function JobForm({ job }: Props) {
               id="experienceLevel"
               name="experienceLevel"
               defaultValue={job?.attributes.experienceLevel ?? ""}
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <option value="">Not specified</option>
               <option value="entry">Entry</option>
@@ -248,7 +239,7 @@ export function JobForm({ job }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Screening questions</CardTitle>
           <CardDescription>
@@ -263,33 +254,30 @@ export function JobForm({ job }: Props) {
           )}
 
           {questions.map((question, index) => (
-            <div key={question.id} className="space-y-3 rounded-md border p-4">
+            <div key={question.id} className="space-y-4 rounded-lg border bg-muted/20 p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="font-medium">Question {index + 1}</p>
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
+                  variant="destructive"
                   onClick={() => removeQuestion(question.id)}
                 >
+                  <Trash2 className="size-4" aria-hidden="true" />
                   Remove
                 </Button>
               </div>
 
               <Input
                 value={question.question}
-                onChange={(event) =>
-                  updateQuestion(question.id, { question: event.target.value })
-                }
+                onChange={(event) => updateQuestion(question.id, { question: event.target.value })}
                 placeholder="What would you like to ask?"
                 required
               />
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor={`answer-type-${question.id}`}>
-                    Answer type
-                  </Label>
+                  <Label htmlFor={`answer-type-${question.id}`}>Answer type</Label>
                   <select
                     id={`answer-type-${question.id}`}
                     value={question.answerType}
@@ -298,7 +286,7 @@ export function JobForm({ job }: Props) {
                         answerType: event.target.value as AnswerType,
                       })
                     }
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     <option value="text">Text</option>
                     <option value="number">Number</option>
@@ -328,24 +316,17 @@ export function JobForm({ job }: Props) {
             disabled={questions.length >= 10}
             onClick={addQuestion}
           >
+            <Plus className="size-4" aria-hidden="true" />
             Add question
           </Button>
         </CardContent>
       </Card>
 
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
+      {error && <ActionMessage type="error">{error}</ActionMessage>}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={submitting}>
-          {submitting
-            ? "Saving…"
-            : editing
-              ? "Save changes"
-              : "Create draft"}
+          {submitting ? "Saving…" : editing ? "Save changes" : "Create draft"}
         </Button>
         <Link
           href={job ? `/dashboard/jobs/${job._id}` : "/dashboard/jobs"}

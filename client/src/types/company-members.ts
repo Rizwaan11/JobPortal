@@ -1,8 +1,4 @@
-export type CompanyRole =
-  | "owner"
-  | "hr_manager"
-  | "recruiter"
-  | "hiring_manager";
+export type CompanyRole = "owner" | "hr_manager" | "recruiter" | "hiring_manager";
 
 export type EditableCompanyRole = Exclude<CompanyRole, "owner">;
 

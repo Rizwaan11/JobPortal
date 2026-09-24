@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchProtected } from "@/lib/fetch-protected";
-import type {
-  ApplicationStage,
-  RecruiterApplication,
-} from "@/types/recruiter-applications";
+import { formatDateTime } from "@/lib/format";
+import type { ApplicationStage, RecruiterApplication } from "@/types/recruiter-applications";
 
 type FeedbackOutcome = "moved_forward" | "rejected";
 
@@ -29,30 +27,16 @@ const interviewStages: ApplicationStage[] = [
   "final_interview",
 ];
 
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
 async function responseError(response: Response, fallback: string) {
   const body = await response.json().catch(() => null);
   return body?.error?.message ?? fallback;
 }
 
-export function InterviewActions({
-  applicationId,
-  stage,
-  status,
-  interview,
-  canSchedule,
-}: Props) {
+export function InterviewActions({ applicationId, stage, status, interview, canSchedule }: Props) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [outcome, setOutcome] =
-    useState<FeedbackOutcome>("moved_forward");
+  const [outcome, setOutcome] = useState<FeedbackOutcome>("moved_forward");
 
   async function scheduleInterview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,23 +49,18 @@ export function InterviewActions({
     const notes = String(form.get("notes") ?? "").trim();
 
     try {
-      const response = await fetchProtected(
-        `/api/applications/${applicationId}/interview`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scheduledAt: new Date(scheduledAt).toISOString(),
-            meetingLink,
-            notes: notes || undefined,
-          }),
-        },
-      );
+      const response = await fetchProtected(`/api/applications/${applicationId}/interview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scheduledAt: new Date(scheduledAt).toISOString(),
+          meetingLink,
+          notes: notes || undefined,
+        }),
+      });
 
       if (!response.ok) {
-        setError(
-          await responseError(response, "Could not schedule the interview"),
-        );
+        setError(await responseError(response, "Could not schedule the interview"));
         return;
       }
 
@@ -114,9 +93,7 @@ export function InterviewActions({
       );
 
       if (!response.ok) {
-        setError(
-          await responseError(response, "Could not save interview feedback"),
-        );
+        setError(await responseError(response, "Could not save interview feedback"));
         return;
       }
 
@@ -136,7 +113,7 @@ export function InterviewActions({
         <div className="space-y-1">
           <p className="font-medium">Scheduled interview</p>
           <p className="text-sm text-muted-foreground">
-            {formatDateTime(interview.scheduledAt)}
+            {formatDateTime(interview.scheduledAt, { timeZone: "UTC" })}
           </p>
           <a
             href={interview.meetingLink}
@@ -146,9 +123,7 @@ export function InterviewActions({
           >
             Open meeting link
           </a>
-          {interview.notes && (
-            <p className="text-sm">Notes: {interview.notes}</p>
-          )}
+          {interview.notes && <p className="text-sm">Notes: {interview.notes}</p>}
         </div>
 
         <form onSubmit={submitFeedback} className="space-y-3">
@@ -168,9 +143,7 @@ export function InterviewActions({
             <select
               id={`outcome-${interview._id}`}
               value={outcome}
-              onChange={(event) =>
-                setOutcome(event.target.value as FeedbackOutcome)
-              }
+              onChange={(event) => setOutcome(event.target.value as FeedbackOutcome)}
               className="h-10 w-full rounded-md border bg-background px-3 text-sm"
             >
               <option value="moved_forward">Move forward</option>
@@ -196,9 +169,7 @@ export function InterviewActions({
 
   return (
     <details className="rounded-md border p-3">
-      <summary className="cursor-pointer text-sm font-medium">
-        Schedule interview
-      </summary>
+      <summary className="cursor-pointer text-sm font-medium">Schedule interview</summary>
 
       <form onSubmit={scheduleInterview} className="mt-4 space-y-3">
         <div className="space-y-2">

@@ -5,13 +5,7 @@ import { LoaderCircle } from "lucide-react";
 
 import { ActionMessage } from "@/components/action-message";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { renewSession } from "@/lib/fetch-protected";
 
 export function RenewSession({ returnTo }: { returnTo: string }) {

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { ActionMessage } from "@/components/action-message";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchProtected } from "@/lib/fetch-protected";
@@ -16,12 +17,10 @@ type Props = {
 
 type Action = "apply" | "shortlist";
 
-export default function ApplyShortlistButtons({
-  jobId,
-  screeningQuestions,
-}: Props) {
+export default function ApplyShortlistButtons({ jobId, screeningQuestions }: Props) {
   const [busy, setBusy] = useState<Action | null>(null);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
   const [needsLogin, setNeedsLogin] = useState(false);
 
   async function apply(event: FormEvent<HTMLFormElement>) {
@@ -77,16 +76,21 @@ export default function ApplyShortlistButtons({
       const body = await response.json().catch(() => null);
 
       if (response.status === 401) {
+        setMessageType("error");
         setNeedsLogin(true);
         setMessage("Sign in as an applicant to continue.");
       } else if (!response.ok) {
+        setMessageType("error");
         setMessage(body?.error?.message ?? "Could not submit the application.");
       } else if (body?.skipped?.includes(jobId)) {
+        setMessageType("error");
         setMessage("You have already applied to this job.");
       } else {
+        setMessageType("success");
         setMessage("Application submitted.");
       }
     } catch {
+      setMessageType("error");
       setMessage("Could not connect to the server.");
     } finally {
       setBusy(null);
@@ -107,14 +111,18 @@ export default function ApplyShortlistButtons({
       const body = await response.json().catch(() => null);
 
       if (response.status === 401) {
+        setMessageType("error");
         setNeedsLogin(true);
         setMessage("Sign in as an applicant to continue.");
       } else if (!response.ok) {
+        setMessageType("error");
         setMessage(body?.error?.message ?? "Could not save this job.");
       } else {
+        setMessageType("success");
         setMessage("Job saved to your shortlist.");
       }
     } catch {
+      setMessageType("error");
       setMessage("Could not connect to the server.");
     } finally {
       setBusy(null);
@@ -161,7 +169,7 @@ export default function ApplyShortlistButtons({
           </div>
         ))}
 
-        <Button type="submit" disabled={busy !== null}>
+        <Button type="submit" size="lg" className="w-full" disabled={busy !== null}>
           {busy === "apply" ? "Applying…" : "Apply"}
         </Button>
       </form>
@@ -169,6 +177,8 @@ export default function ApplyShortlistButtons({
       <Button
         type="button"
         variant="outline"
+        size="lg"
+        className="w-full"
         disabled={busy !== null}
         onClick={() => void saveToShortlist()}
       >
@@ -176,14 +186,14 @@ export default function ApplyShortlistButtons({
       </Button>
 
       {message && (
-        <p role="status" className="text-sm text-muted-foreground">
+        <ActionMessage type={messageType}>
           {message}{" "}
           {needsLogin && (
             <Link href="/login" className="font-medium underline">
               Sign in
             </Link>
           )}
-        </p>
+        </ActionMessage>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { ActionMessage } from "@/components/action-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,16 +64,29 @@ export default function LoginPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="current-password" required />
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
         </div>
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error && <ActionMessage type="error">{error}</ActionMessage>}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
           {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
       <div className="mt-5 flex flex-wrap justify-between gap-2 text-sm">
-        <Link href="/register" className="font-medium text-primary hover:underline">Create an account</Link>
-        <Link href="/verify-email" className="text-muted-foreground hover:text-foreground hover:underline">Verify email</Link>
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          Create an account
+        </Link>
+        <Link
+          href="/verify-email"
+          className="text-muted-foreground hover:text-foreground hover:underline"
+        >
+          Verify email
+        </Link>
       </div>
     </AuthPanel>
   );
