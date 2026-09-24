@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Building2, CalendarDays, Search, SearchX } from "lucide-react";
+import { CursorPagination } from "@/components/cursor-pagination";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -12,6 +13,7 @@ type Props = {
   searchParams: Promise<{
     q?: string | string[];
     cursor?: string | string[];
+    direction?: string | string[];
   }>;
 };
 
@@ -19,12 +21,14 @@ export default async function JobsPage({ searchParams }: Props) {
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const cursor = typeof params.cursor === "string" ? params.cursor : undefined;
-  const { jobs, nextCursor } = await getPublicJobs({ q, cursor });
+  const direction = params.direction === "previous" ? "previous" : "next";
+  const { jobs, previousCursor, nextCursor } = await getPublicJobs({ q, cursor, direction });
 
-  const nextPageParams = new URLSearchParams();
-  if (q) nextPageParams.set("q", q);
-  if (nextCursor) nextPageParams.set("cursor", nextCursor);
-  const firstPageHref = q ? `/jobs?${new URLSearchParams({ q }).toString()}` : "/jobs";
+  const pageHref = (pageCursor: string, pageDirection: "next" | "previous") => {
+    const query = new URLSearchParams({ cursor: pageCursor, direction: pageDirection });
+    if (q) query.set("q", q);
+    return `/jobs?${query.toString()}`;
+  };
 
   return (
     <div className="space-y-8">
@@ -144,19 +148,10 @@ export default async function JobsPage({ searchParams }: Props) {
           </ul>
         )}
 
-        {nextCursor && (
-          <div className="flex items-center justify-center gap-4 pt-2">
-            <Link href={firstPageHref} className={buttonVariants({ variant: "ghost" })}>
-              First page
-            </Link>
-            <Link
-              href={`/jobs?${nextPageParams.toString()}`}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              Next page <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-          </div>
-        )}
+        <CursorPagination
+          previousHref={previousCursor ? pageHref(previousCursor, "previous") : null}
+          nextHref={nextCursor ? pageHref(nextCursor, "next") : null}
+        />
       </section>
     </div>
   );

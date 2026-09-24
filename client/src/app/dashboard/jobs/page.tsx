@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BriefcaseBusiness, CalendarDays, MapPin, Plus } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
+import { CursorPagination } from "@/components/cursor-pagination";
 import { FilterPills } from "@/components/filter-pills";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -22,18 +23,21 @@ const statuses: { label: string; value?: JobStatus }[] = [
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; cursor?: string }>;
+  searchParams: Promise<{ status?: string; cursor?: string; direction?: string }>;
 }) {
   const params = await searchParams;
   const query = new URLSearchParams();
   const activeStatus = statuses.find((item) => item.value === params.status)?.value;
   if (activeStatus) query.set("status", activeStatus);
   if (params.cursor) query.set("cursor", params.cursor);
+  const direction = params.direction === "previous" ? "previous" : "next";
+  if (params.cursor) query.set("direction", direction);
 
   const suffix = query.size ? `?${query.toString()}` : "";
   const [data, company] = await Promise.all([
     apiFetch(`/api/jobs${suffix}`) as Promise<{
       jobs: RecruiterJobSummary[];
+      previousCursor: string | null;
       nextCursor: string | null;
     }>,
     getCompanyContext(),
@@ -115,17 +119,26 @@ export default async function JobsPage({
         </div>
       )}
 
-      {data.nextCursor && (
-        <Link
-          href={`/dashboard/jobs?${new URLSearchParams({
-            ...(activeStatus ? { status: activeStatus } : {}),
-            cursor: data.nextCursor,
-          }).toString()}`}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Next page
-        </Link>
-      )}
+      <CursorPagination
+        previousHref={
+          data.previousCursor
+            ? `/dashboard/jobs?${new URLSearchParams({
+                ...(activeStatus ? { status: activeStatus } : {}),
+                cursor: data.previousCursor,
+                direction: "previous",
+              }).toString()}`
+            : null
+        }
+        nextHref={
+          data.nextCursor
+            ? `/dashboard/jobs?${new URLSearchParams({
+                ...(activeStatus ? { status: activeStatus } : {}),
+                cursor: data.nextCursor,
+                direction: "next",
+              }).toString()}`
+            : null
+        }
+      />
     </div>
   );
 }

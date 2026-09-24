@@ -23,19 +23,23 @@ export type PublicJob = {
 
 export type PublicJobsPage = {
   jobs: PublicJobSummary[];
+  previousCursor: string | null;
   nextCursor: string | null;
 };
 
 export async function getPublicJobs({
   q,
   cursor,
+  direction,
 }: {
   q?: string;
   cursor?: string;
+  direction?: "next" | "previous";
 } = {}): Promise<PublicJobsPage> {
   const query = new URLSearchParams();
   if (q) query.set("q", q);
   if (cursor) query.set("cursor", cursor);
+  if (cursor && direction) query.set("direction", direction);
 
   const suffix = query.size ? `?${query.toString()}` : "";
   const response = await fetch(`${apiUrl}/api/public/jobs${suffix}`, {

@@ -82,19 +82,26 @@ export async function listJobsForCompany(companyId: string, input: ListCompanyJo
         filter.status = input.status
     }
 
-    if (input.cursor) {
-        const decoded = decodeCursor(input.cursor);
-        if (decoded) {
+    const decoded = input.cursor ? decodeCursor(input.cursor) : null;
+    const isPrevious = input.direction === 'previous' && decoded !== null;
+
+    if (decoded) {
             const cursorDate = new Date(decoded.createdAt);
-            filter.$or = [
-                { createdAt: { $lt: cursorDate } },
-                { createdAt: cursorDate, _id: { $lt: decoded.id } },
-            ];
-        }
+            filter.$or = isPrevious
+                ? [
+                    { createdAt: { $gt: cursorDate } },
+                    { createdAt: cursorDate, _id: { $gt: decoded.id } },
+                ]
+                : [
+                    { createdAt: { $lt: cursorDate } },
+                    { createdAt: cursorDate, _id: { $lt: decoded.id } },
+                ];
     }
 
+    const sortDirection: 1 | -1 = isPrevious ? 1 : -1;
+
     const jobs = await Job.find(filter)
-        .sort({ createdAt: -1, _id: -1 })
+        .sort({ createdAt: sortDirection, _id: sortDirection })
         .limit(input.limit + 1)
         .select('title status createdAt deadline attributes');
 

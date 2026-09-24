@@ -1,5 +1,5 @@
 import { listPublicJobs, getPublicJobById } from "./public.repo.js";
-import { encodeCursor } from "../jobs/jobs.repo.js";
+import { decodeCursor, encodeCursor } from "../jobs/jobs.repo.js";
 import { redis } from "../../shared/redis.js";
 import { config } from "../../shared/config.js";
 import { logger } from "../../shared/logger.js";
@@ -25,19 +25,22 @@ export async function getPublicJobs(input: PublicJobsQueryInput) {
 
     const rows = await listPublicJobs(input);
 
-    const hasNextPage = rows.length > input.limit;
-    const items = hasNextPage ? rows.slice(0, input.limit) : rows;
+    const decodedCursor = input.cursor ? decodeCursor(input.cursor) : null;
+    const isPrevious = input.direction === 'previous' && decodedCursor !== null;
+    const hasMoreInDirection = rows.length > input.limit;
+    const pageRows = hasMoreInDirection ? rows.slice(0, input.limit) : rows;
+    const items = isPrevious ? pageRows.reverse() : pageRows;
+    const firstItem = items[0];
+    const lastItem = items[items.length - 1];
 
-    let nextCursor: string | null = null;
+    const previousCursor = firstItem && (isPrevious ? hasMoreInDirection : decodedCursor !== null)
+        ? encodeCursor(firstItem.createdAt, firstItem._id.toString())
+        : null;
+    const nextCursor = lastItem && (isPrevious ? decodedCursor !== null : hasMoreInDirection)
+        ? encodeCursor(lastItem.createdAt, lastItem._id.toString())
+        : null;
 
-    if (hasNextPage) {
-        const lastItem = items[items.length - 1];
-        if (lastItem) {
-            nextCursor = encodeCursor(lastItem.createdAt, lastItem._id.toString());
-        }
-    }
-
-    const result = { jobs: items, nextCursor };
+    const result = { jobs: items, previousCursor, nextCursor };
 
     if (isCacheable) {
         try {

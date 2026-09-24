@@ -27,6 +27,7 @@ export const jobSchema = z.object({
 export const listCompanyJobsSchema = z.object({
   status: z.enum(['draft', 'open', 'closed']).optional(),
   cursor: z.string().optional(),
+  direction: z.enum(['next', 'previous']).default('next'),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 

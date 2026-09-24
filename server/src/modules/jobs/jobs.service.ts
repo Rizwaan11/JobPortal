@@ -7,7 +7,7 @@ import { logger } from '../../shared/logger.js';
 
 import type { jobInput, ListCompanyJobsInput, UpdateJobInput } from './job.schema.js';
 import { ForbiddenError } from '../../shared/errors.js';
-import { assertJobOwnership, createJob, encodeCursor, getJobById, listJobsForCompany, setJobStatus, updateJob } from './jobs.repo.js';
+import { assertJobOwnership, createJob, decodeCursor, encodeCursor, getJobById, listJobsForCompany, setJobStatus, updateJob } from './jobs.repo.js';
 
 
 export async function getJob(userId: string, jobId: string) {
@@ -100,18 +100,21 @@ export async function getCompanyJobs(userId:string, input: ListCompanyJobsInput)
     const rows = await listJobsForCompany(company.companyId.toString(), input);
 
 
-    const hasNextPage = rows.length > input.limit;
-    const items = hasNextPage ? rows.slice(0, input.limit) : rows;
+    const decodedCursor = input.cursor ? decodeCursor(input.cursor) : null;
+    const isPrevious = input.direction === 'previous' && decodedCursor !== null;
+    const hasMoreInDirection = rows.length > input.limit;
+    const pageRows = hasMoreInDirection ? rows.slice(0, input.limit) : rows;
+    const items = isPrevious ? pageRows.reverse() : pageRows;
+    const firstItem = items[0];
+    const lastItem = items[items.length - 1];
 
-    let nextCursor: string | null = null;
+    const previousCursor = firstItem && (isPrevious ? hasMoreInDirection : decodedCursor !== null)
+        ? encodeCursor(firstItem.createdAt, firstItem._id.toString())
+        : null;
+    const nextCursor = lastItem && (isPrevious ? decodedCursor !== null : hasMoreInDirection)
+        ? encodeCursor(lastItem.createdAt, lastItem._id.toString())
+        : null;
 
-    if (hasNextPage) {
-        const lastItem = items[items.length - 1];
-        if (lastItem) {
-            nextCursor = encodeCursor(lastItem.createdAt, lastItem._id.toString());
-        }
-    }
-
-    return { jobs: items, nextCursor };
+    return { jobs: items, previousCursor, nextCursor };
 
 }
