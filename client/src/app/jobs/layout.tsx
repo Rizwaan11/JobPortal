@@ -1,23 +1,45 @@
 import Link from "next/link";
 
-import { BrandLink } from "@/components/brand-link";
+import { AppHeader } from "@/components/app-header";
+import { SessionActions } from "@/components/session-actions";
+import { buttonVariants } from "@/components/ui/button";
+import { getPublicCompanyContext } from "@/lib/company";
+import {
+  getAccountContextLabel,
+  getWorkspaceLink,
+  publicNavigation,
+} from "@/lib/navigation";
+import { getPublicSessionUser } from "@/lib/server-auth";
 
-export default function JobsLayout({ children }: { children: React.ReactNode }) {
+export default async function JobsLayout({ children }: { children: React.ReactNode }) {
+  const user = await getPublicSessionUser("/jobs");
+  const company = user?.role === "recruiter" ? await getPublicCompanyContext() : null;
+
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <BrandLink />
-          <nav aria-label="Main navigation" className="flex items-center gap-5 text-sm">
-            <Link href="/jobs" className="font-medium hover:text-primary">
-              Browse jobs
-            </Link>
-            <Link href="/login" className="text-muted-foreground hover:text-foreground">
-              Sign in
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <AppHeader
+        width="6xl"
+        navigation={publicNavigation}
+        navigationLabel="Main navigation"
+        actions={
+          user ? (
+            <SessionActions
+              email={user.email}
+              contextLabel={getAccountContextLabel(user.role, company?.companyRole)}
+              workspace={getWorkspaceLink(user.role)}
+            />
+          ) : (
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+                Sign in
+              </Link>
+              <Link href="/register" className={buttonVariants()}>
+                Create account
+              </Link>
+            </div>
+          )
+        }
+      />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">{children}</main>
     </div>

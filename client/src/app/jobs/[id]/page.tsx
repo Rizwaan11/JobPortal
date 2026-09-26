@@ -2,9 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatLabel } from "@/lib/format";
+import { getWorkspaceLink } from "@/lib/navigation";
 import { getPublicJob } from "@/lib/public-jobs";
+import { getPublicSessionUser } from "@/lib/server-auth";
 import ApplyShortlistButtons from "./apply-shortlist-buttons";
 
 type Props = { params: Promise<{ id: string }> };
@@ -23,8 +26,13 @@ function displayValue(value: unknown): string | null {
 
 export default async function JobDetailPage({ params }: Props) {
   const { id } = await params;
-  const job = await getPublicJob(id);
+  const [job, user] = await Promise.all([
+    getPublicJob(id),
+    getPublicSessionUser(`/jobs/${id}`),
+  ]);
   if (!job) notFound();
+  const workspace = user && user.role !== "applicant" ? getWorkspaceLink(user.role) : null;
+  const workAccountLabel = user?.role === "admin" ? "administrator" : "recruiter";
 
   const details = Object.entries(job.attributes ?? {})
     .map(([label, value]) => {
@@ -99,7 +107,22 @@ export default async function JobDetailPage({ params }: Props) {
               <CalendarDays className="size-4" aria-hidden="true" />
               {deadline ? `Deadline: ${deadline}` : "No deadline listed"}
             </div>
-            <ApplyShortlistButtons jobId={id} screeningQuestions={job.screeningQuestions} />
+            {!workspace ? (
+              <ApplyShortlistButtons jobId={id} screeningQuestions={job.screeningQuestions} />
+            ) : (
+              <div className="space-y-3 border-t pt-5">
+                <p className="text-sm leading-6 text-muted-foreground">
+                  Applications and saved jobs are available from a job seeker account. You are
+                  currently signed in with a {workAccountLabel} account.
+                </p>
+                <Link
+                  href={workspace.href}
+                  className={buttonVariants({ className: "w-full" })}
+                >
+                  Return to {workspace.label.toLowerCase()}
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -4,6 +4,9 @@ export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
   const currentPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const isProtectedPath = ["/dashboard", "/portal", "/admin"].some(
+    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`),
+  );
 
   if (!accessToken) {
     if (refreshToken) {
@@ -12,7 +15,9 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(renewalUrl);
     }
 
-    return NextResponse.redirect(new URL("/login", request.url));
+    if (isProtectedPath) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
   }
 
   const requestHeaders = new Headers(request.headers);
@@ -24,5 +29,13 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/portal/:path*", "/admin/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/portal/:path*",
+    "/admin/:path*",
+    "/jobs/:path*",
+    "/login",
+    "/register",
+    "/verify-email",
+  ],
 };

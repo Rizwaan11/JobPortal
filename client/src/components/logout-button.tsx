@@ -12,13 +12,13 @@ export function LogoutButton() {
       method: "POST",
     });
 
-    router.replace("/login");
+    router.replace("/jobs");
     router.refresh();
   }
 
   return (
     <Button type="button" variant="ghost" onClick={handleLogout}>
-      Logout
+      Log out
     </Button>
   );
 }

@@ -1,5 +1,6 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { canManageJobs, getCompanyContext } from "@/lib/company";
+import { getCompanyContext } from "@/lib/company";
+import { canManageJobs } from "@/lib/company-permissions";
 
 import { JobForm } from "../job-form";
 

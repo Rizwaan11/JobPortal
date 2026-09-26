@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
-import { canManageJobs, getCompanyContext } from "@/lib/company";
+import { getCompanyContext } from "@/lib/company";
+import { canManageJobs } from "@/lib/company-permissions";
 import { formatDeadline, formatLabel } from "@/lib/format";
 import type { JobStatus, RecruiterJobSummary } from "@/types/jobs";
 

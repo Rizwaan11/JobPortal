@@ -7,14 +7,14 @@ import { redirect } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { getRoleHome, getSafeReturnPath, type UserRole } from "@/lib/roles";
 
-type CurrentUser = {
+export type CurrentUser = {
   id: string;
   email: string;
   role: UserRole;
   status: "active";
 };
 
-const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   try {
     const data = (await apiFetch("/api/auth/me")) as {
       user: CurrentUser;
@@ -30,7 +30,7 @@ const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   }
 });
 
-export async function requireRole(requiredRole: UserRole) {
+export async function getSessionUser(fallback = "/") {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -38,14 +38,28 @@ export async function requireRole(requiredRole: UserRole) {
 
     if (cookieStore.has("refresh_token")) {
       const headerStore = await headers();
-      const returnTo = getSafeReturnPath(
-        headerStore.get("x-current-path"),
-        getRoleHome(requiredRole),
-      );
+      const returnTo = getSafeReturnPath(headerStore.get("x-current-path"), fallback);
 
       redirect(`/auth/renew-session?returnTo=${encodeURIComponent(returnTo)}`);
     }
+  }
 
+  return user;
+}
+
+export async function getPublicSessionUser(fallback = "/jobs") {
+  try {
+    return await getSessionUser(fallback);
+  } catch (error) {
+    if (error instanceof ApiError) return null;
+    throw error;
+  }
+}
+
+export async function requireRole(requiredRole: UserRole) {
+  const user = await getSessionUser(getRoleHome(requiredRole));
+
+  if (!user) {
     redirect("/login");
   }
 
@@ -54,4 +68,12 @@ export async function requireRole(requiredRole: UserRole) {
   }
 
   return user;
+}
+
+export async function redirectAuthenticatedUser() {
+  const user = await getPublicSessionUser("/jobs");
+
+  if (user) {
+    redirect(getRoleHome(user.role));
+  }
 }

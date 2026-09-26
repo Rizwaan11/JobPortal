@@ -7,8 +7,6 @@ export async function POST() {
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
   if (refreshToken) {
-    // Best-effort: tell Express to invalidate the refresh token.
-    // We never block logout on this — cookies are always cleared.
     fetch(`${apiUrl}/api/auth/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

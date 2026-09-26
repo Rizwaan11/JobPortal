@@ -1,25 +1,24 @@
-import { BrandLink } from "@/components/brand-link";
-import { LogoutButton } from "@/components/logout-button";
+import { AppHeader } from "@/components/app-header";
+import { SessionActions } from "@/components/session-actions";
+import { getAccountContextLabel, getWorkspaceNavigation } from "@/lib/navigation";
 import { requireRole } from "@/lib/server-auth";
 
-import { PortalNav } from "./portal-nav";
-
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  await requireRole("applicant");
+  const user = await requireRole("applicant");
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <BrandLink />
-          <div className="scrollbar-none order-3 w-full overflow-x-auto border-t pt-3 sm:order-none sm:w-auto sm:border-0 sm:pt-0">
-            <PortalNav />
-          </div>
-          <div className="ml-auto">
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        width="6xl"
+        navigation={getWorkspaceNavigation(user.role)}
+        navigationLabel="Applicant navigation"
+        actions={
+          <SessionActions
+            email={user.email}
+            contextLabel={getAccountContextLabel(user.role)}
+          />
+        }
+      />
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">{children}</main>
     </div>
   );

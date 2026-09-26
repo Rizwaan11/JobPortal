@@ -1,38 +1,17 @@
 import Link from "next/link";
 import { Building2, ExternalLink, Globe2 } from "lucide-react";
 
-import { ApiError, apiFetch } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { canManageJobs, canManageMembers } from "@/lib/company-permissions";
+import { getOptionalCompanyContext } from "@/lib/company";
 
 import CompanyForm from "./company-form";
 
-type Company = {
-  _id: string;
-  name: string;
-  slug: string;
-  website?: string;
-  verified: boolean;
-  suspended: boolean;
-  createdAt: string;
-};
-
-async function loadCompany(): Promise<Company | null> {
-  try {
-    return (await apiFetch("/api/companies/me")) as Company;
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      return null;
-    }
-
-    throw error;
-  }
-}
-
 export default async function CompanyPage() {
-  const company = await loadCompany();
+  const company = await getOptionalCompanyContext();
 
   if (company === null) {
     return (
@@ -49,6 +28,9 @@ export default async function CompanyPage() {
       </Card>
     );
   }
+
+  const canManageJobPosts = canManageJobs(company.companyRole);
+  const canManageTeam = canManageMembers(company.companyRole);
 
   return (
     <div className="space-y-7">
@@ -114,11 +96,19 @@ export default async function CompanyPage() {
 
           <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row">
             <Link href="/dashboard/jobs" className={buttonVariants()}>
-              Manage jobs
+              {canManageJobPosts ? "Manage jobs" : "View jobs"}
             </Link>
-            <Link href="/dashboard/members" className={buttonVariants({ variant: "outline" })}>
-              View members
+            <Link
+              href="/dashboard/applications"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              View applications
             </Link>
+            {canManageTeam ? (
+              <Link href="/dashboard/members" className={buttonVariants({ variant: "outline" })}>
+                Manage team
+              </Link>
+            ) : null}
           </div>
         </CardContent>
       </Card>
