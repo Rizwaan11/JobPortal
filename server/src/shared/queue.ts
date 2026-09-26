@@ -1,5 +1,5 @@
 import { Queue, type DefaultJobOptions } from "bullmq";
-import { config } from "./config.js";
+import { getBullMQConnection } from "./redis-connection.js";
 
 export type JobName =
   | "send-application-confirmation"
@@ -24,8 +24,6 @@ const defaultJobOptions: DefaultJobOptions = {
 };
 
 export const queue = new Queue("jobs", {
-  connection: {
-    url: config.REDIS_URL,
-  },
+  connection: getBullMQConnection(),
   defaultJobOptions,
 });

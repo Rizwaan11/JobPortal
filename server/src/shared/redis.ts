@@ -1,10 +1,8 @@
 import { createClient } from "redis";
-import { config } from "./config.js";
 import { logger } from "./logger.js";
+import { getRedisClientOptions } from "./redis-connection.js";
 
-export const redis = createClient({
-  url: config.REDIS_URL,
-});
+export const redis = createClient(getRedisClientOptions());
 
 redis.on("error", (error) => {
   logger.error({ err: error }, "Redis client error");

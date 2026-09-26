@@ -1,12 +1,12 @@
 import { Worker, type Job } from "bullmq";
 import mongoose from "mongoose";
-import { config } from "../shared/config.js";
 import { connectDB } from "../shared/db.js";
 import {
   sendApplicationConfirmationEmail,
   sendInterviewNotification,
 } from "../shared/mailer.js";
 import { queue, type JobName } from "../shared/queue.js";
+import { getBullMQConnection } from "../shared/redis-connection.js";
 import { processResume } from "./handlers/processResume.js";
 import { sendRecruiterDigest } from "./handlers/sendRecruiterDigest.js";
 
@@ -80,9 +80,7 @@ const worker = new Worker(
     }
   },
   {
-    connection: {
-      url: config.REDIS_URL,
-    },
+    connection: getBullMQConnection(),
     concurrency: 5,
   }
 );
