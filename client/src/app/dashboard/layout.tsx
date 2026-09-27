@@ -11,7 +11,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
-        homeHref="/dashboard"
         navigation={getWorkspaceNavigation(user.role, company?.companyRole)}
         navigationLabel="Recruiter navigation"
         actions={

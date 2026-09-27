@@ -9,7 +9,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
-        homeHref="/admin"
         navigation={getWorkspaceNavigation(user.role)}
         navigationLabel="Administration navigation"
         actions={
