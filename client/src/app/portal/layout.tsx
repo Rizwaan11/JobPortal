@@ -10,6 +10,7 @@ export default async function PortalLayout({ children }: { children: React.React
     <div className="min-h-screen bg-background">
       <AppHeader
         width="6xl"
+        homeHref="/portal"
         navigation={getWorkspaceNavigation(user.role)}
         navigationLabel="Applicant navigation"
         actions={

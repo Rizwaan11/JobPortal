@@ -6,8 +6,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { getPublicCompanyContext } from "@/lib/company";
 import {
   getAccountContextLabel,
+  getPublicPageNavigation,
   getWorkspaceLink,
-  publicNavigation,
 } from "@/lib/navigation";
 import { getPublicSessionUser } from "@/lib/server-auth";
 
@@ -19,7 +19,8 @@ export default async function JobsLayout({ children }: { children: React.ReactNo
     <div className="flex min-h-screen flex-col">
       <AppHeader
         width="6xl"
-        navigation={publicNavigation}
+        homeHref="/jobs"
+        navigation={getPublicPageNavigation(user?.role, company?.companyRole ?? undefined)}
         navigationLabel="Main navigation"
         actions={
           user ? (

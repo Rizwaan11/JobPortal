@@ -17,12 +17,12 @@ export function SessionActions({ email, contextLabel, workspace }: SessionAction
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
       <div className="hidden max-w-48 text-right lg:block">
-        <p className="truncate text-sm font-medium">{email}</p>
-        <p className="truncate text-xs text-muted-foreground">{contextLabel}</p>
+        <p className="truncate text-xs text-muted-foreground">{email}</p>
+        <p className="truncate text-sm font-medium">{contextLabel}</p>
       </div>
 
       {workspace ? (
-        <Link href={workspace.href} className={buttonVariants({ variant: "outline" })}>
+        <Link href={workspace.href} className={buttonVariants({ variant: "default" })}>
           <span className="sm:hidden">{workspace.shortLabel ?? workspace.label}</span>
           <span className="hidden sm:inline">{workspace.label}</span>
         </Link>

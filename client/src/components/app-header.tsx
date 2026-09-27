@@ -10,6 +10,8 @@ type AppHeaderProps = {
   navigationLabel: string;
   actions: ReactNode;
   width?: "6xl" | "7xl";
+  /** Where the logo/brand link navigates to. Defaults to /jobs. */
+  homeHref?: string;
 };
 
 export function AppHeader({
@@ -17,6 +19,7 @@ export function AppHeader({
   navigationLabel,
   actions,
   width = "7xl",
+  homeHref = "/jobs",
 }: AppHeaderProps) {
   return (
     <header className="border-b bg-card">
@@ -26,7 +29,7 @@ export function AppHeader({
           width === "6xl" ? "max-w-6xl" : "max-w-7xl",
         )}
       >
-        <BrandLink href="/jobs" />
+        <BrandLink href={homeHref} />
 
         <div className="scrollbar-none order-3 w-full overflow-x-auto border-t pt-3 sm:order-none sm:w-auto sm:border-0 sm:pt-0">
           <nav aria-label={navigationLabel} className="flex min-w-max items-center gap-1">

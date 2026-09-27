@@ -7,17 +7,16 @@ export type NavigationItem = {
   label: string;
 };
 
-export const publicNavigation: NavigationItem[] = [{ href: "/jobs", label: "Job board" }];
+export const publicNavigation: NavigationItem[] = [{ href: "/jobs", label: "Browse jobs" }];
 
 const applicantNavigation: NavigationItem[] = [
-  { href: "/jobs", label: "Job board" },
+  { href: "/jobs", label: "Browse jobs" },
   { href: "/portal/applications", label: "Applications" },
   { href: "/portal/shortlist", label: "Saved jobs" },
   { href: "/portal/profile", label: "Profile" },
 ];
 
 const adminNavigation: NavigationItem[] = [
-  { href: "/jobs", label: "Job board" },
   { href: "/admin/companies", label: "Companies" },
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/users", label: "Users" },
@@ -32,7 +31,6 @@ const companyRoleLabels: Record<CompanyRole, string> = {
 
 export function getRecruiterNavigation(companyRole?: CompanyRole): NavigationItem[] {
   const items: NavigationItem[] = [
-    { href: "/jobs", label: "Job board" },
     {
       href: "/dashboard/company",
       label: companyRole ? "Company" : "Company setup",
@@ -51,6 +49,20 @@ export function getRecruiterNavigation(companyRole?: CompanyRole): NavigationIte
   }
 
   return items;
+}
+
+/**
+ * Navigation shown in the public /jobs layout.
+ * Guests get the simple "Browse jobs" link.
+ * Authenticated users get their workspace-specific nav so they can
+ * move between sections without hunting for the workspace button.
+ */
+export function getPublicPageNavigation(
+  role?: UserRole,
+  companyRole?: CompanyRole,
+): NavigationItem[] {
+  if (!role) return publicNavigation;
+  return getWorkspaceNavigation(role, companyRole);
 }
 
 export function getWorkspaceNavigation(
