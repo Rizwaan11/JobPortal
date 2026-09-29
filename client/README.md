@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobPortal frontend
 
-## Getting Started
+The Next.js application for [JobPortal](../README.md). It provides public job discovery plus separate applicant, recruiter, and administrator workspaces.
 
-First, run the development server:
+## Responsibilities
+
+- Render public and authenticated application areas with the App Router
+- Keep backend access and refresh tokens out of browser JavaScript
+- Store tokens in HttpOnly cookies through same-origin auth routes
+- Forward protected requests to the Express API from server-side route handlers
+- Apply role-aware navigation and route protection
+- Present loading, empty, error, and not-found states for the main workflows
+
+## Application areas
+
+- `src/app/jobs` — public job list and details
+- `src/app/portal` — applicant profile, shortlist, and application tracking
+- `src/app/dashboard` — recruiter company, jobs, members, and pipeline
+- `src/app/admin` — company, job, and user moderation
+- `src/app/api` — backend-for-frontend route handlers
+- `src/proxy.ts` — session-aware route protection
+
+## Local setup
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set `API_URL` in `.env.local` to the Express server URL. For the default local setup:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+API_URL=http://localhost:5000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `http://localhost:3000`.
 
-## Learn More
+## Commands
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev       # development server
+npm run lint      # ESLint
+npm run build     # production build
+npm run start     # run the production build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For architecture, infrastructure, backend setup, and the live demo, see the [root project README](../README.md).
